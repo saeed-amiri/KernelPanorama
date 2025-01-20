@@ -46,3 +46,15 @@ static ssize_t mychardev_read(
     struct file *file, char __user *buf, size_t len, loff_t *off);
 static ssize_t mychardev_write(
     struct file *file, const char __user *buf, size_t len, loff_t *off)
+
+/*
+ * file operations: tell the kerenl which functions handle the device's open,
+ * read, write, etc.
+*/
+static struct file_operations fops = {
+    .owner    = THIS_MODULE,
+    .open     = mychardev_open,
+    .release  = mychardev_release,
+    .read     = mychardev_read,
+    .write    = mychardev_write,
+};
