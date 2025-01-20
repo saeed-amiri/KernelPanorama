@@ -48,13 +48,33 @@ static ssize_t mychardev_write(
     struct file *file, const char __user *buf, size_t len, loff_t *off)
 
 /*
- * file operations: tell the kerenl which functions handle the device's open,
+ * file operations: tell the kernel which functions handle the device's open,
  * read, write, etc.
 */
 static struct file_operations fops = {
-    .owner    = THIS_MODULE,
-    .open     = mychardev_open,
-    .release  = mychardev_release,
-    .read     = mychardev_read,
-    .write    = mychardev_write,
+        .owner    = THIS_MODULE,
+        .open     = mychardev_open,
+        .release  = mychardev_release,
+        .read     = mychardev_read,
+        .write    = mychardev_write,
 };
+
+/*
+ * called when 'insmod' loads the module into the kernel
+ * we register our character device here
+*/
+static int __init mychardev_init(void)
+{
+        printk(KERN_INFO "mychardev: init\n");
+
+        // 0 = let kernel pick a major dynamically
+        mychardev_major = register_chardev(0, "mychardev", &fops);
+        if (mychardev_major < 0) {
+                printk(KERN_ERR "mychardev: failed to register device\n");
+                return mychardev_major;
+        }
+
+        printl(KERN_INFO "mychardev: registered with major number %d\n",
+               mychardev_major);
+        return 0;
+}
