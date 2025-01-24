@@ -20,16 +20,16 @@
 #include <linux/uaccess.h>   // copy_to_user, copy_from_user
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("SD")
+MODULE_AUTHOR("SD");
 MODULE_DESCRIPTION("A simple character device driver example");
-MODULE_VERSION("0.1")
+MODULE_VERSION("0.1");
 
 /*
  * We'll store up to 128 bytes from user writes.
  * In a real driver, the allocation should be handle dynamically and with care
 */
 #define BUF_SIZE 128
-static chat device_buffer[BUF_SIZE];
+static char device_buffer[BUF_SIZE];
 static int buffer_len;
 
 // Store the major number that the kernel gives us
@@ -43,9 +43,9 @@ static int mychardev_major;
 static int     mychardev_open(struct inode *inode, struct file *file);
 static int     mychardev_release(struct inode *inode, struct file *file);
 static ssize_t mychardev_read(
-    struct file *file, char __user *buf, size_t len, loff_t *off);
+        struct file *file, char __user *buf, size_t len, loff_t *off);
 static ssize_t mychardev_write(
-    struct file *file, const char __user *buf, size_t len, loff_t *off)
+        struct file *file, const char __user *buf, size_t len, loff_t *off);
 
 /*
  * file operations: tell the kernel which functions handle the device's open,
@@ -68,13 +68,13 @@ static int __init mychardev_init(void)
         printk(KERN_INFO "mychardev: init\n");
 
         // 0 = let kernel pick a major dynamically
-        mychardev_major = register_chardev(0, "mychardev", &fops);
+        mychardev_major = register_chrdev(0, "mychardev", &fops);
         if (mychardev_major < 0) {
                 printk(KERN_ERR "mychardev: failed to register device\n");
                 return mychardev_major;
         }
 
-        printl(KERN_INFO "mychardev: registered with major number %d\n",
+        printk(KERN_INFO "mychardev: registered with major number %d\n",
                mychardev_major);
         return 0;
 }
