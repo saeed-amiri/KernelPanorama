@@ -1,7 +1,7 @@
 obj-m += mychardev.o
 
-allL
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M-$(PWD) modules
+all:
+	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 clean:
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M-$(PWD) clean
+	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
