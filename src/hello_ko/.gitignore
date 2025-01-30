@@ -1,0 +1,21 @@
+# Ignore all files by default
+*
+
+# Allow .gitignore itself to be tracked
+!.gitignore
+
+# Allow C source files
+!*.c
+
+# Allow Makefiles
+!Makefile
+!*.mk
+
+# Ignore common build artifacts
+*.o
+*.ko
+*.mod.c
+*.order
+*.symvers
+*.cmd
+.tmp_versions/
