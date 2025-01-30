@@ -78,3 +78,15 @@ static int __init mychardev_init(void)
                mychardev_major);
         return 0;
 }
+
+/*
+ * Called just before the module is removed.
+ * We unregister our character device here.
+ */
+
+static void __exit mychardev_exit(void)
+{
+        unregister_chrdev(mychardev_major, "mychardev");
+        printk(KERN_INFO "mychardev: exit\n");
+        pr_info("Cheking dmesg");
+}
