@@ -56,10 +56,11 @@ cat /dev/input/mouse0  # Read mouse input
 echo "Hello" > /dev/pts/1  # Send test to another terminal session
 ```
 
-Colons can be used to align columns.
+**Differences and Use Cases**
 
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
+| Feature        | `/proc`       | `/sys`        | `/dev`        |
+| -------------  |:-------------:|:-------------:|:-------------:|
+| Purpose        | Kernel & process information | Kernel & hardware parameters |Direct hardware access|
+| Filesystem type| `procfs` (virtual)      | `sysfs` (Virtual) | `defvfs` (Virtual) |
+| Interaction    | Read-only (mostly)|	Read/Write | Device communication|
+| Examples       | `/proc/cpuinfo`, `/proc/meminfo`| `/sys/class/net`, `/sys/block`| `/dev/sda`, `/dev/null`|
