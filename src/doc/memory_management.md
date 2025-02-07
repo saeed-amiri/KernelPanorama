@@ -67,3 +67,57 @@ Since the OS uses virtual memory, each process does nit directly access physical
 * A process accesses a virtual address
 * The MMU looks up the page table to find the corresponding physical address.
 * The CPU accesses the correct memory location
+
+**How Page Tables Work:**
+Because modern systems have huge amounts of RAM, a single-level page table would be too large. Instead, Linux uses a multi-level page table to keep it efficient.
+- PGD (Page Global Directory) -> Top-level table pointing to P4D -> 512 (Enteries per table)
+- P4D (Page 4th Level Directory) -> Points to PUD -> 512
+- PUD (Page Upper Directory) -> Points to PMD -> 512
+- PMD (Page Middle Directory) -> Points to PTE -> 512
+- PTE (Page Table Entry) -> Maps virtual address to physical address -> 512
+    
+PTE entry contains the page frame number (PFN).
+Offset within the page is added to find the exact byte.
+
+### Page Faults (When a Page is Not Found):
+If a process accesses a virtual address not in RAM, the MMU raises a "Page Fault".
+
+Invalid Address → Segmentation Fault (SIGSEGV).
+
+## Paging vs. Segmentation
+
+Paging and segmentation are two different memory management techniques. Modern Linux systems use **paging**, not segmentation.
+
+| **Feature**        | **Paging**                                | **Segmentation**                        |
+|--------------------|---------------------------------|---------------------------------|
+| **Memory Model**   | Fixed-size pages                | Variable-sized segments        |
+| **Fragmentation**  | Solves external fragmentation  | Causes fragmentation           |
+| **Speed**         | Faster lookup via page tables  | Slower due to variable sizes  |
+| **Flexibility**    | Less flexible, fixed-size chunks | More flexible, variable-sized chunks |
+
+### **Why Linux Uses Paging, Not Segmentation**
+- Paging **avoids external fragmentation** by using fixed-size pages.
+- It allows for **efficient virtual memory management**.
+- Modern **CPUs are optimized for paging**, making it faster.
+- Segmentation was **used in older architectures** (e.g., x86 real mode).
+
+## How the Kernel Allocates Pages
+
+The Linux kernel provides several functions for **memory allocation**, depending on the use case.
+
+| **Function**         | **Description**                               | **Use Case**                          |
+|----------------------|---------------------------------------------|--------------------------------------|
+| `kmalloc(size, flags)`  | Allocates contiguous memory in physical RAM | Small kernel allocations (<1 MB) |
+| `vmalloc(size)`      | Allocates large non-contiguous memory        | Large kernel memory (>1 MB) |
+| `alloc_pages(flags, order)` | Allocates memory at page level (2^order pages) | Large contiguous allocations |
+| `mmap()`            | Maps files/devices into user-space memory    | Shared memory, file mapping |
+| `remap_pfn_range()` | Maps physical memory to user-space           | Device drivers, hardware mapping |
+| `get_free_page(flags)` | Allocates a single 4 KB page               | Low-level kernel memory |
+
+### 🔹 **Key Differences**
+- **`kmalloc()`** is **fast** but **only works for small allocations** because it requires contiguous physical memory.
+- **`vmalloc()`** works for **large allocations** by mapping non-contiguous memory into a contiguous virtual space.
+- **`alloc_pages()`** is used for **direct page-level allocations** (useful for multi-page kernel buffers).
+- **`mmap()`** allows mapping **files or hardware memory into user space**.
+
+
