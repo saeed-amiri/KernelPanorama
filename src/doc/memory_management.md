@@ -61,9 +61,9 @@ cat /proc/meminfo | grep Page
 ### What is Page Table:
 Since the OS uses virtual memory, each process does nit directly access physical memory. instead, the `MMU` translates the virtual memory addresses into physical memory addresses using page tables.
 -   One can compare to a phone book:
--       virtual addresses are like people's names,
--       physical assresses are like phone numbers.
--       The page table acts as the lookup table between them
+-   virtual addresses are like people's names,
+-   physical assresses are like phone numbers.
+-   The page table acts as the lookup table between them
 * A process accesses a virtual address
 * The MMU looks up the page table to find the corresponding physical address.
 * The CPU accesses the correct memory location
