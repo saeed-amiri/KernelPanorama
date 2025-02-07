@@ -1,5 +1,6 @@
 # What is Memory Management in the Kernel?
 The kernel manages memory through a complex system that includes:
+
     1. Physical & Virtual Memory Mapping:
         - In OS like Linux, processes do not directly access physical memory (`RAM`). Instead, the kernel provides each process with a virtual address space, and the Memory Management Unit (`MMU`) translates virtual addressees memory locations:
         - Physical memory is the actual `RAM` on installed on the system,
