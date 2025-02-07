@@ -44,10 +44,10 @@ A page is the smallest unit of memory management in the modern operating systems
 
 **Page Basics**
 
--   Page size is 4 KB (on x86-64 systems).
--   Divides memory into fixed chunks instead of variable-sized regions.
--   Simplifies memory allocation and swapping.
--   Each process gets its own set of pages.
+- Page size is 4 KB (on x86-64 systems).
+- Divides memory into fixed chunks instead of variable-sized regions.
+- Simplifies memory allocation and swapping.
+- Each process gets its own set of pages.
 In terminal:
 ```bash
 getconf PAGESIZE
