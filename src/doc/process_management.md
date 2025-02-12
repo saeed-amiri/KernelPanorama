@@ -1,5 +1,5 @@
 # Process Management in the Kernel
-The kernel creates, schedules, and manages processes,ensuring that multiple programs can run efficiently without interfering with each other.
+The kernel creates, schedules, and manages processes, ensuring that multiple programs can run efficiently without interfering with each other.
 
 ## Key Responsibilities of the Kernel in Process Management are:
 - Processes Creation (`fork()`, `execve()`)
@@ -20,7 +20,7 @@ struct task_struct {
     struct list_head tasks;         // List of processes (for scheduling)
     struct task_struct *parent;     // Pointer to parent process
     struct files_struct *files;     // Open file descriptors
-    struct signal_struct * signal;  // Signal handeling info
+    struct signal_struct *signal;   // Signal handeling info
 }
 ```
 This structure stores everything about a process: its ID, memory, open files, parent process and scheduling state.
@@ -50,7 +50,7 @@ ps -eo pid,state, cmd | head
       9 I [kworker/0:0H-events_highpri]
      12 I [kworker/R-mm_pe]
 ```
-or by checking a specific <PID>:
+or by checking a specific `<PID>`:
 ```bash
 cat /proc/12/status
 Name:   kworker/R-mm_pe
@@ -95,4 +95,129 @@ voluntary_ctxt_switches:        2
 nonvoluntary_ctxt_switches:     0
 x86_Thread_features:
 x86_Thread_features_locked:
+```
+
+## Process Creation (`fork()`, `execev()`):
+Linux creates new processes using:
+* `fork()` which creates a copy of the current process,
+* `execve()` which replaces the process image with a new program.
+
+Example of process creation in user space:
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        printf("Child Process: PID = %d\n", getpid());
+    } else {
+        printf("Parent Process: PID = %d, Child PID = %d\n", getpid(), pid);
+    }
+    return 0;
+}
+```
+Kernel-side Process Creation (`do_fork()`) internally, `fork()` calls:
+- `do_fork()` (kernel function in `kernel/fork.c`)
+- Allocates a new process context (memory, file descriptors)
+- Returns new process ID (PID)
+
+## Process Scheduling (How the Kernel Chooses Which Process Runs):
+
+Linux schedules processes using the Completely Fair Scheduler (CFS)
+
+|Scheduler Type   | Description                             |
+|-----------------|-----------------------------------------|
+|CFS (Default)    | First CPU time for all processes        |
+|FIFO (Real-Time) | First-in, first-out real-time scheduling|
+|Round Robin (RT) | Each process gets a time slice          |
+|Nice values      | Lower `nice` values = Higher priority   |
+
+For checking Process Scheduling Information:
+```bash
+chrt -p <PID>  # Check process priority
+chrt -p  12
+
+
+pid 12's current scheduling policy: SCHED_OTHER
+pid 12's current scheduling priority: 0
+```
+- `SCHED_OTHER` is a default schedule and uses time-sharing (CFS) (others are `SCHED_FIFO` and `SCHED_RR`)
+- `priority: 0` In SCHED_OTHER, priority is managed dynamically by the kernel and does not have a fixed numerical priority like real-time policies.
+
+The process priority can be set by `nice`:
+```bash
+nice -n -10 ./program   # Run with high priority
+```
+negative number also can be use like `--10`, and it can be undone be `renice`
+
+## Process termination and Zombie Processes
+When a process ends, it moves to **TASK_ZOMBIE** until parent calls `waitpid()`
+
+To create a zombie process:
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main() {
+    pid_t pid = fork();
+    if (pid == 0) {
+        printf("Child Process: PID = %d\n", getpid());
+        exit(0); // Child exits
+    }
+    sleep(10);  // Parent does not call wait(), so child becomes zombie
+    return 0;
+}
+```
+To check Zombie Process:
+```bash
+ps aux | grep Z
+
+or
+
+ps aux | awk '$8 ~ /Z/ {print $0}'
+```
+
+and to fix (kill) a Zombie process
+```bash
+kill -SIGCHD <Parent PID>
+```
+
+## Signals and Process Control (`kill`, `SIGKILL`, `SIGTERM`):
+A signal is an event notification system used by the kernel:
+|Signal     | Meaning                    | Default Action        |
+|-----------|----------------------------|-----------------------|
+|SIGKILL(9) | Immediately kill process    | Cannot be ignored     |
+|SIGTERM(15)| Gracefully terminate       | Default for `kill`    |
+|SIGSTOP(19)| Stop process execution     | Can be resumed        |
+|SIGCONT    | Resume the paused execution|                       |
+
+Send Signals:
+```bash
+kill -SIGTERM <PID>  # Ask process to terminate
+kill -SIGKILL <PID>  # Force kill
+kill -SIGSTOP <PID>  # Pause process
+kill -SIGCONT <PID>  # Resume process
+```
+Trap a signal in code:
+```c
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void handle_sigint(int sig) {
+    printf("Caught SIGINT (%d), exiting...\n", sig);
+    exit(0);
+}
+
+int main() {
+    signal(SIGINT, handle_sigint);
+    while (1) {
+        printf("Running... Press Ctrl+C to exit.\n");
+        sleep(1);
+    }
+    return 0;
+}
 ```
