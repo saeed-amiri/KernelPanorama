@@ -127,12 +127,12 @@ Kernel-side Process Creation (`do_fork()`) internally, `fork()` calls:
 
 Linux schedules processes using the Completely Fair Scheduler (CFS)
 
-|Scheduler Type   | Description                             |
-|-----------------|-----------------------------------------|
-|CFS (Default)    | First CPU time for all processes        |
-|FIFO (Real-Time) | First-in, first-out real-time scheduling|
-|Round Robin (RT) | Each process gets a time slice          |
-|Nice values      | Lower `nice` values = Higher priority   |
+|Scheduler Type          | Description                             |
+|------------------------|-----------------------------------------|
+|CFS (Default)           | First CPU time for all processes        |
+|FIFO (Real-Time)        | First-in, first-out real-time scheduling|
+|Round Robin (Real-Time) | Each process gets a time slice          |
+|Nice values             | Lower `nice` values = Higher priority   |
 
 For checking Process Scheduling Information:
 ```bash

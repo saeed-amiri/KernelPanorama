@@ -4,7 +4,7 @@ The goal of this exercises is to explore Linux kernel programming by implementin
 #### What:
 > ##### Basic Kernel modules:
 >> 1. Writing a minimal kernel module
->> 2. Working with ```c printk()``` 
+>> 2. Working with `printk()`
 >> 3. Loading (insmod) and unloading (rmmod) modules
 >> 4. Checking kernel logs (dmesg, journalctl)
 > ##### Charter Device Drivers:
