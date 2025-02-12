@@ -93,8 +93,8 @@ What is what:
 ### What is `Page` Table:
 Since the OS uses virtual memory, each process does nit directly access physical memory. instead, the `MMU` translates the virtual memory addresses into physical memory addresses using `page` tables.
 -   One can compare to a phone book:
--   virtual addresses are like people's names,
--   physical addresses are like phone numbers.
+-   Virtual addresses are like people's names,
+-   Physical addresses are like phone numbers.
 -   The `page` table acts as the lookup table between them
 * A process accesses a virtual address
 * The MMU looks up the `page` table to find the corresponding physical address.
@@ -108,11 +108,11 @@ Because modern systems have huge amounts of `RAM`, a single-level `page` table w
 - `PMD` (Page Middle Directory) -> Points to `PTE` -> 512
 - `PTE` (Page Table Entry) -> Maps virtual address to physical address -> 512
     
-`PTE` entry contains the `page` frame number (PFN).
+`PTE` entry contains the `page` frame number (`PFN`).
 Offset within the `page` is added to find the exact byte.
 
 ### *Page Faults* (When a Page is Not Found):
-If a process accesses a virtual address not in RAM, the MMU raises a "Page Fault".
+If a process accesses a virtual address not in RAM, the MMU raises a "`Page Fault`".
 
 Invalid Address → Segmentation Fault (`SIGSEGV`).
 
@@ -149,7 +149,7 @@ The Linux kernel provides several functions for **memory allocation**, depending
 ### 🔹 **Key Differences**
 - **`kmalloc()`** is **fast** but **only works for small allocations** because it requires contiguous physical memory.
 - **`vmalloc()`** works for **large allocations** by mapping non-contiguous memory into a contiguous virtual space.
-- **`alloc_pages()`** is used for **direct page-level allocations** (useful for multi-`page` kernel buffers).
+- **`alloc_pages()`** is used for **direct page-level allocations** (useful for multi-page kernel buffers).
 - **`mmap()`** allows mapping **files or hardware memory into user space**.
 
 
