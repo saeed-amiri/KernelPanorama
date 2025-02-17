@@ -149,3 +149,57 @@ void read_fun(void) {
 - Writing is complex
 
 ---
+
+---
+
+# Locks in Shell:
+The shell (Bash, Zsh, etc.) uses **advisory file locking** via `flock()` or other mechanism to prevent concurrent writes.
+
+## Locking Mechanism in Bash:
+Example of locking used for `console history`:
+|Bash Operation                          |                                           |
+|----------------------------------------|-------------------------------------------|
+|History Merging (`shopt -s histappend`) | Ensures each terminal appends to `~/.bash_history` instead of overwriting |
+|History Synchronization (`PROMPT_COMMAND='history -a; history -r'`)| Writes history immediately after each command and reload it across terminals.|
+
+---
+
+## File Locking Mechanisms in User Space:
+Unlike kernel locks, user-space applications use file locks to controls access:
+| Lock Type | How it works                       | Common Uses Cases                |
+|`flock()`  | Locks an open file descriptor      | Used in Bash history and scripts |
+|`fcntl()`  | Advisory locking mechanism         | Used in databases (PostgreSQL, SQLite)|
+|`lockf()`  | Simple wrapper around `fcntl()`    | Used in user-space programs      |
+|dot-file locking| Creates a `.lock` file to prevent concurrent access | Used in package managers, editors (e.g., Vim) |
+
+**Example of using `flock()` in shell:
+```bash
+exec 200>~/.bash_history.lock
+flock -n 200 || exit 1
+echo "Writing safely to history file" >> ~/.bash_history
+flock -u 200  # Unlock
+
+# to check:
+
+tail ~/.bash_history
+
+git add src/doc/process_management.md src/doc/mychardev.md
+git commit -m 'Doc: fix typos'
+git push origin main
+Writing safely to history file
+```
+This prevents two terminals from writing history at the same time.
+
+---
+
+## How to See If a File is Locked
+
+To check if `~/.bash_history` is locked:
+```bash
+lslocks | grep bash_history
+```
+or
+```bash
+losf ~/.bash_history
+```
+if another process is holding the lock, it will show up.
