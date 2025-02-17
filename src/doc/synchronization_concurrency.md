@@ -10,6 +10,20 @@ The Linux Kernel runs multiple processes and kernel threads at the same time. If
 - What locking mechanisms does the Linux kernel use?
 ---
 
+
+## **Lock**
+A lock is a synchronization mechanisms used to prevent multiple processes or threads from modifying shared resources at the same time. Without lock, race conditions can occur, leading to data corruption, unpredictable behavior, or crashes.
+
+Detect Deadlocks:
+```bash
+cat /proc/locks
+
+or 
+
+sudo dmesg | grep lock
+```
+---
+
 ## 1. What is Concurrency in the Kernel?
 Concurrency happens when multiple processes or threads execute simultaneously. In the Linux kernel, concurrency occurs due to:
 -   Preemptive scheduling -> The kernel can interrupt one process and switch to another.
