@@ -167,6 +167,7 @@ Example of locking used for `console history`:
 ## File Locking Mechanisms in User Space:
 Unlike kernel locks, user-space applications use file locks to controls access:
 | Lock Type | How it works                       | Common Uses Cases                |
+|-----------|------------------------------------|----------------------------------|
 |`flock()`  | Locks an open file descriptor      | Used in Bash history and scripts |
 |`fcntl()`  | Advisory locking mechanism         | Used in databases (PostgreSQL, SQLite)|
 |`lockf()`  | Simple wrapper around `fcntl()`    | Used in user-space programs      |
