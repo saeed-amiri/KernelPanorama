@@ -144,6 +144,6 @@ which means:
     ```bash
     taskset -p 3 3151
     ```
-    * Where `3` is hex `11` in binary, meaning CPU 0 and CPU1.
+    * Where `3` is hex `11` in binary, meaning CPU 0 and CPU 1.
 
 ---
