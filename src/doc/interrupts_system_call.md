@@ -27,32 +27,93 @@ cat /proc/interrupts
 It shows something like:
 ```bash
            CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       
-  1:          0          0          0          0          0          0          0       4091   IO-APIC   1-edge      i8042
+  1:          0          0          0          0          0          0          0       8744   IO-APIC   1-edge      i8042
   8:          0          0          0          0          0          0          0          0   IO-APIC   8-edge      rtc0
   9:          0          0          0          0          0          0          0          0   IO-APIC   9-fasteoi   acpi
  12:          0          0          0          0          0          0        144          0   IO-APIC  12-edge      i8042
  16:          0          0          0          0          0          0          0          0   IO-APIC  16-fasteoi   i801_smbus
- 21:          0          0          0          0          0       1073          0          0   IO-APIC  21-fasteoi   qxl
- 22:          0          0          0          0          0          0          0          0   IO-APIC  22-fasteoi   virtio3
+ 21:          0          0          0          0          0       2846          0          0   IO-APIC  21-fasteoi   qxl
  ...
+ 54:          0          0          0         85          0          0          0          0  PCI-MSIX-0000:02:00.0   0-edge      xhci_hcd
+ 63:          0          0          0          0       1966          0          0          0  PCI-MSI-0000:00:1f.2   0-edge      ahci[0000:00:1f.2]
+ 64:          0          0          0          0          0          0          0        562  PCI-MSI-0000:00:1b.0   0-edge      snd_hda_intel:card0
+NMI:          0          0          0          0          0          0          0          0   Non-maskable interrupts
+LOC:     218350     265674     235427     244692     239381     243945     222000     232790   Local timer interrupts
+...
+SPU:          0          0          0          0          0          0          0          0   Spurious interrupts
+CAL:     644036     541046     438163     460180     443055     429467     426495     428718   Function call interrupts
+TLB:      86010      89776      86646      87977      90198      85229      89249      89287   TLB shootdowns
+...
+MCE:          0          0          0          0          0          0          0          0   Machine check exceptions
+MCP:         12         12         12         12         12         12         12         12   Machine check polls
+ERR:          0
+MIS:          0
+...
+PIW:          0          0          0          0          0          0          0          0   Posted-interrupt wakeup event
  ```
+#### How to read those?
+This file provides real-time statistics on interrupts handled by each CPU core. It shows how hardware devices and the kernel interact with the CPU.
+
+**Understanding the columns:**
+|Columns                         |Meaning                                                                       |
+|--------------------------------|------------------------------------------------------------------------------|
+|Number (`1, 8, 9, 12...`)       |The IRQ (interrupt Requests) number assigned to a device                       |
+|CPU0, CPU1, ...                 |The count of times that interrupt has been handled by each CPU                 |
+|Type (`IO-APIC, PCI-MSIX, etc.`)|Type of interrupt controller handling the IRQ                                |
+|Description                     |The driver of a device associated with the interrupt                           |
+
+**Breaking down:**
+```bash
+           CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       
+  1:          0          0          0          0          0          0          0       8744   IO-APIC   1-edge      i8042
+```
+* IRG `1` (Interrupt Request Number 1): `i8042` (keyboard controller),
+* Handled only by CPU7 (8744 times)
+```bash
+ 21:          0          0          0          0          0       2846          0          0   IO-APIC  21-fasteoi   qxl
+```
+* IRQ `21`: `qxl` (a virtual GPU driver for QEMU.KVM VMs),
+* Processed `2846` times on CPU5 only
+
+**Special Interrupt Types**:
+|Type               |Meaning                                                                               |
+|-------------------|--------------------------------------------------------------------------------------|
+|`IO-APIC`          |Used for handling interrupts on modern systems (Edge or FastEOI)                      |
+|`PCI-MSIX`         |MSI-X (Message Signaled Interrupts), used by modern PCIs devices for better performance|
+|`NMI`              |None-masckable Interrupts (critical hardware failures)                               |
+|`SPU`              |Spurious interrupts (unexpected/unhanded interrupts)                                   |
+|`CAL`              |Function call interrupts (kernel scheduling work)                                      |
+|`TLB`              |Translation Look aside Buffer, shootdown (MMU/cache operations)                        |
+|`HYP`              | Hypervisor-related interrupts (VM host-guest communication)                          |
+
+**How to use this data?**
+- Find CPU-intensive devices,
+    * If one CPU is handling most of the interrupts, consider balancing the load,
+- Check if the hardware is being used efficiently:
+    * if a device has very few interrupts it might be inactive or not working properly,
+- Diagnose performance:
+    * A high interrupt rate on a CPU could indicate a bottleneck (e. g., a network card receiving too many packets).
 
 
- ## What Are System Calls?
- System calls (syscalls) are how user-space programs request services from the kernel.
+**Check the real-time interrupts:**
+```bash
+watch -n 1 cat /proc/interrpts
+```
 
- For example, when run:
- ```c
- write(1, "Hello", 5);
- ```
- The `write()` function is not directly writing to the screen; it is making a **system call** (`sys_write`) to ask the kernel to do it.
- * System calls allow user-space to access hardware safely,
- * They are entry points into the kernel without giving full control.
+## What Are System Calls?
+System calls (syscalls) are how user-space programs request services from the kernel.
 
- To see the available system calls:
- ```bash
- man 2 syscalls
- ```
+For example, when run:
+```c
+write(1, "Hello", 5);
+```
+The `write()` function is not directly writing to the screen; it is making a **system call** (`sys_write`) to ask the kernel to do it.
+* System calls allow user-space to access hardware safely,
+* They are entry points into the kernel without giving full control.
+To see the available system calls:
+```bash
+man 2 syscalls
+```
 (There is a lot!)
 
 or (if exists)
