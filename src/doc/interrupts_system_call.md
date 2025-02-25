@@ -237,7 +237,7 @@ sudo reboot
 
 ---
 
-## ** Step 5: Write a User-Space Program to Test It**
+## **Step 5: Write a User-Space Program to Test It**
 **Create a test program (`test_mycall.c`):**
 ```c
 #include <stdio.h>
