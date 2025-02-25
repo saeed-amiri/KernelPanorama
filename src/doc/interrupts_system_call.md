@@ -141,7 +141,10 @@ To see all running processes and their context switches:
 ```bash
 cat /proc/sched_debug | grep -A10 "task"
 ```
-### Writing a Custom System Call:
+
+---
+---
+## Writing a Custom System Call:
 1. Modify `syscalls.btl` to add a new entry,
 2. Write a function in `kernel/sys.c` that prints a message,
 3. Recompile the kernel with the new system call,
@@ -150,7 +153,7 @@ cat /proc/sched_debug | grep -A10 "task"
 **adding a custom system call to the Linux kernel**
 
 
-## ** Overview: What We Will Do**
+### **Overview: What We Will Do**
 We will **add a custom system call** that simply prints `"Hello from my system call!"` to the kernel log.
 
 1. **Modify `syscalls.tbl`** to register the new syscall.
@@ -161,7 +164,7 @@ We will **add a custom system call** that simply prints `"Hello from my system c
 
 ---
 
-## ** Step 1: Modify `syscalls.tbl`**
+#### **Step 1: Modify `syscalls.tbl`**
 Each syscall in Linux has an **assigned number** in `syscalls.tbl`, which maps syscall names to numbers.
 
 **Find the correct `syscalls.tbl` file:**
@@ -183,7 +186,7 @@ Add the following **at the end of the table** (choose a number not in use, e.g.,
 
 ---
 
-## ** Step 2: Write the Syscall Implementation**
+#### **Step 2: Write the Syscall Implementation**
 **Open the system call source file:**
 ```bash
 cd /usr/src/linux/kernel
@@ -204,7 +207,7 @@ SYSCALL_DEFINE0(mycall) {
 
 ---
 
-## ** Step 3: Declare the Syscall in Header Files**
+#### **Step 3: Declare the Syscall in Header Files**
 **Modify `unistd_64.h`**
 ```bash
 cd /usr/src/linux/include/uapi/asm-generic
@@ -218,7 +221,7 @@ Add:
 
 ---
 
-## ** Step 4: Recompile the Kernel**
+#### **Step 4: Recompile the Kernel**
 **Recompile the kernel with the new system call:**
 ```bash
 cd /usr/src/linux
