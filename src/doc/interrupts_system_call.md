@@ -146,3 +146,121 @@ cat /proc/sched_debug | grep -A10 "task"
 2. Write a function in `kernel/sys.c` that prints a message,
 3. Recompile the kernel with the new system call,
 4. Use `syscall()` in **C** to call it.
+
+**adding a custom system call to the Linux kernel**
+
+
+## ** Overview: What We Will Do**
+We will **add a custom system call** that simply prints `"Hello from my system call!"` to the kernel log.
+
+1. **Modify `syscalls.tbl`** to register the new syscall.
+2. **Create a syscall function (`sys_mycall`)** in the kernel.
+3. **Declare the syscall in the header files (`unistd.h`).**
+4. **Recompile the kernel.**
+5. **Write a user-space program** to call the new syscall using `syscall()`.
+
+---
+
+## ** Step 1: Modify `syscalls.tbl`**
+Each syscall in Linux has an **assigned number** in `syscalls.tbl`, which maps syscall names to numbers.
+
+**Find the correct `syscalls.tbl` file:**
+```bash
+cd /usr/src/linux/arch/x86/entry/syscalls
+ls
+```
+There is **`syscall_64.tbl`** for **64-bit** systems and **`syscall_32.tbl`** for **32-bit**.
+
+**Edit the table to add a new entry:**
+Open the **`syscall_64.tbl`** file:
+```bash
+sudo nano syscall_64.tbl
+```
+Add the following **at the end of the table** (choose a number not in use, e.g., `450`):
+```
+450  common  mycall   sys_mycall
+```
+
+---
+
+## ** Step 2: Write the Syscall Implementation**
+**Open the system call source file:**
+```bash
+cd /usr/src/linux/kernel
+sudo nano sys.c
+```
+**Add this function at the end:**
+```c
+#include <linux/kernel.h>
+#include <linux/syscalls.h>
+
+SYSCALL_DEFINE0(mycall) {
+    printk(KERN_INFO "Hello from my system call!\n");
+    return 0;
+}
+```
+* `SYSCALL_DEFINE0(mycall)` defines a syscall with **zero arguments**.
+* `printk(KERN_INFO "...")` logs the message in the kernel log (`dmesg`).
+
+---
+
+## ** Step 3: Declare the Syscall in Header Files**
+**Modify `unistd_64.h`**
+```bash
+cd /usr/src/linux/include/uapi/asm-generic
+sudo nano unistd.h
+```
+Add:
+```c
+#define __NR_mycall  450
+```
+* **This associates our syscall number (`450`) with `sys_mycall`.**
+
+---
+
+## ** Step 4: Recompile the Kernel**
+**Recompile the kernel with the new system call:**
+```bash
+cd /usr/src/linux
+sudo make -j$(nproc)
+sudo make modules_install
+sudo make install
+```
+**Reboot into the new kernel:**
+```bash
+sudo reboot
+```
+* Now, the new syscall **exists in the kernel**!
+
+---
+
+## ** Step 5: Write a User-Space Program to Test It**
+**Create a test program (`test_mycall.c`):**
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+
+#define SYS_MYCALL 450  // The syscall number we assigned
+
+int main() {
+    long res = syscall(SYS_MYCALL);
+    printf("Syscall returned: %ld\n", res);
+    return 0;
+}
+```
+**Compile and Run:**
+```bash
+gcc test_mycall.c -o test_mycall
+./test_mycall
+```
+**Check the Kernel Logs (`dmesg`):**
+```bash
+sudo dmesg | tail -10
+```
+* If everything worked, there should be:
+```
+Hello from my system call!
+```
+
+---
