@@ -141,3 +141,8 @@ To see all running processes and their context switches:
 ```bash
 cat /proc/sched_debug | grep -A10 "task"
 ```
+### Writing a Custom System Call:
+1. Modify `syscalls.btl` to add a new entry,
+2. Write a function in `kernel/sys.c` that prints a message,
+3. Recompile the kernel with the new system call,
+4. Use `syscall()` in **C** to call it.
