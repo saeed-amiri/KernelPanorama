@@ -77,4 +77,136 @@ To remove a capability:
 ```bash
 sudo setcap -r /usr/bin/nc
 ```
+## 2. Access Control Mechanisms:
+Linux provides various access control mechanisms beyond **standard UNIX file permissions**.
+
+### **Standard UNIX File Permissions**
+
+UNIX file permissions control how users and groups can **read**, **write**, and **execute** files and directories. Each file has three permission categories:
+
+| Permission Type | Symbol | Numeric Value |
+|---------------|--------|---------------|
+| **Read**      | `r`    | `4` |
+| **Write**     | `w`    | `2` |
+| **Execute**   | `x`    | `1` |
+
+Each file and directory in UNIX has three sets of these permissions:
+
+| Category   | Description |
+|------------|-------------|
+| **Owner**  | The user who owns the file    |
+| **Group**  | Users in the file's group     |
+| **Others** | All other users on the system |
+
+#### **Viewing File Permissions**
+To check the permissions of a file or directory:
+```bash
+ls -l myfile.txt
+```
+Example output:
+```bash
+-rwxr-xr--  1 user group 1234 Mar 5 12:34 myfile.txt
+```
+**Breaking it down:**
+- `-` → Regular file (`d` would indicate a directory).
+- `rwx` → **Owner** has **read, write, execute** (`r=4`, `w=2`, `x=1`, total = `7`).
+- `r-x` → **Group** has **read and execute** (`r=4`, `x=1`, total = `5`).
+- `r--` → **Others** have **read-only** (`r=4`, total = `4`).
+
+---
+
+### **Changing File Permissions (`chmod`)**
+You can modify file permissions using `chmod` with:
+1. **Symbolic Mode**  
+2. **Octal (Numeric) Mode**
+
+#### **Symbolic Mode**
+To **add execute** permission for the owner:
+```bash
+chmod u+x myfile.txt
+```
+To **remove write** permission for the group:
+```bash
+chmod g-w myfile.txt
+```
+To **give everyone execute** permission:
+```bash
+chmod a+x myfile.txt
+```
+
+#### **Octal (Numeric) Mode**
+Each permission type corresponds to a number:
+- **Read (r) = 4**
+- **Write (w) = 2**
+- **Execute (x) = 1**
+
+Combine these to set permissions:
+```bash
+chmod 754 myfile.txt
+```
+- **7 (Owner) → rwx** (4+2+1)
+- **5 (Group) → r-x** (4+0+1)
+- **4 (Others) → r--** (4+0+0)
+
+---
+
+### **Changing File Ownership (`chown` & `chgrp`)**
+#### **Changing Owner**
+```bash
+sudo chown newuser myfile.txt
+```
+#### **Changing Group**
+```bash
+sudo chgrp newgroup myfile.txt
+```
+#### **Changing Both Owner & Group**
+```bash
+sudo chown newuser:newgroup myfile.txt
+```
+
+---
+
+### **Special Permissions**
+#### **Setuid (`s`)**
+Allows users to execute a file **as the owner**:
+```bash
+chmod u+s myscript.sh
+```
+Now, when a user runs `myscript.sh`, it executes as the file's owner.
+
+#### **Setgid (`s`)**
+For directories, new files inherit the **group ownership**:
+```bash
+chmod g+s mydir/
+```
+
+#### **Sticky Bit (`t`)**
+Prevents users from deleting files they don’t own (common for `/tmp`):
+```bash
+chmod +t /tmp
+```
+### **Difference Between `chmod`, `chown`, and `chgrp`**
+
+| Command  | Purpose                                            | Example                                   |
+|----------|----------------------------------------------------|-------------------------------------------|
+| **`chmod`**  | Changes file **permissions** (read, write, execute) | `chmod 755 myfile.txt` (Owner: rwx, Group: r-x, Others: r-x) |
+| **`chown`**  | Changes **file ownership** (who owns the file) | `sudo chown user1 myfile.txt` (Now `user1` owns the file) |
+| **`chgrp`**  | Changes the **group ownership** of a file | `sudo chgrp group1 myfile.txt` (Now the group is `group1`) |
+
+### **Key Differences**
+- **`chmod`** modifies access rights (**who can read/write/execute**).
+- **`chown`** assigns a new **owner**.
+- **`chgrp`** assigns a new **group** (without changing the owner).
+
+### **Combined Example**
+```bash
+sudo chown user1:group1 myfile.txt  # Change owner to `user1` and group to `group1`
+chmod 750 myfile.txt                # Owner: rwx, Group: r-x, Others: no access
+```
+Now:
+- **user1** can **read/write/execute**.
+- **group1 members** can **read/execute**.
+- **Others** have **no access**.
+
+---
 
