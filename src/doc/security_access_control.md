@@ -210,3 +210,62 @@ Now:
 
 ---
 
+### POSIX Access Control Lists (ACLs):
+
+ACLs allow more granular permission settings than the traditional `chmod` system.
+
+**Checking ACLs:**
+```bash
+getfacl myfile.text
+```
+Example output:
+```bash
+# file: myfile.txt
+# owner: user
+# group: group
+user::rw-
+group::r--
+other::---
+user:john:rwx
+```
+
+This file allows an additional user (john) to have *read-write-execute* (`rwx`) permissions.
+
+**Seting ACLs:**
+```bash
+setfacl -m u:john:r myfile.txt
+```
+`setfacl`: set file ACLs
+
+**Remove ACL entry:**
+```bash
+setfacl -x u:john:r myfile.text
+```
+* `u`: Specifies that the ACL is being set for a user (john in this case).
+* `r`: Grants read permission to john.
+
+#### AppArmor and SELinux
+These are **Mandatory Access Control (MAC)** frameworks that enforce security policies beyond traditional UNIX permissions, ensuring strict access control and limiting potential exploits:
+- *The **Security-Enhanced Linux (SELinux)** is a security architecture for Linux® systems that allows administrators to have more control over who can access the system. **SELinux** defines access controls for the applications, processes, and files on a system [[RedHat](https://www.redhat.com/en/topics/linux/what-is-selinux)].*
+- *The **AppArmor** [as an Linux kernel security module] is an effective and easy-to-use Linux application security system. AppArmor proactively protects the operating system and applications from external or internal threats, even zero-day attacks, by enforcing good behavior and preventing both known and unknown application flaws from being exploited [[apparmor](https://apparmor.net/)].*
+
+
+**Checking AppArmor Status:**
+```bash
+sudo aa-status
+```
+Example output:
+```bash
+apparmor module is loaded.
+5 profiles are in enforce mode.
+```
+
+To temporarily switch **SELinux** to permissive mode:
+```bash
+sudo setenforce 0
+```
+To permanently disable it:
+```bash
+sudo nano /etc/selinux/config
+# Change 'SELINUX=enforcing' to 'SELINUX=disabled'
+```
