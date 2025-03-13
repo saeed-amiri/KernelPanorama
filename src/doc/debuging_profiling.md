@@ -11,10 +11,8 @@ dmesg | less
 it usually need `sudo` to run the command.
 some example of the output:
 ```bash
-[    0.000000] Linux version 6.8.0-52-generic (buildd@lcy02-amd64-046) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0, GNU ld
- (GNU Binutils for Ubuntu) 2.42) #53-Ubuntu SMP PREEMPT_DYNAMIC Sat Jan 11 00:06:25 UTC 2025 (Ubuntu 6.8.0-52.53-generic 6.8.12)
-[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.8.0-52-generic root=UUID=9f5af3e4-66f3-44bc-891f-de2c4c06bbe0 ro quiet splash vt.hand
-off=7
+[[    0.000000] Linux version 6.8.0-52-generic (Ubuntu 6.8.0-52.53-generic 6.8.12)
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.8.0-52-generic root=UUID=REDACTED ro quiet splash vt.handoff=7
 [    0.000000] KERNEL supported cpus:
 [    0.000000]   Intel GenuineIntel
 [    0.000000]   AMD AuthenticAMD
@@ -27,8 +25,47 @@ off=7
 [    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
 [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000007ffdafff] usable
 ```
-- Useful for checking **boot logs, hardware issues**, and **drivers errors**.
+#### **Short Explanation of `dmesg` Output**  
 
+```bash
+[    0.000000] Linux version 6.8.0-52-generic (Ubuntu 6.8.0-52.53-generic 6.8.12)
+```
+- **Kernel version** running on the system.
+
+```bash
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.8.0-52-generic root=UUID=REDACTED ro quiet splash vt.handoff=7
+```
+- **Kernel boot parameters**:  
+  - `BOOT_IMAGE=...` → Kernel image loaded at boot.  
+  - `root=UUID=REDACTED` → Root filesystem identifier.  
+  - `ro` → Mounts root filesystem as **read-only** initially.  
+  - `quiet splash` → Hides detailed boot logs, shows a splash screen.  
+
+```bash
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Hygon HygonGenuine
+[    0.000000]   Centaur CentaurHauls
+[    0.000000]   zhaoxin   Shanghai
+```
+- Lists **supported CPU architectures**.
+
+```bash
+[    0.000000] BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+```
+- **Memory map from BIOS**:  
+  - **Usable** → Available to the OS.  
+  - **Reserved** → Used by BIOS or hardware.
+
+**TL;DR:**  
+- Kernel version & boot settings.  
+- Supported CPUs.  
+- Memory layout (usable vs. reserved).  
+
+- Useful for checking **boot logs, hardware issues**, and **drivers errors**.
+---
 - To filter for errors:
 ```bash
 dmesg --level=err,warn
@@ -36,7 +73,7 @@ dmesg --level=err,warn
 an output:
 ```bash
 [    0.601295] device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled. Duplicate IMA measurements will not be recorded in the IMA log.
-[    0.601546] platform eisa.0: EISA: Cannot allocate resource for mainboard
+[    0.601546] platform eisa.0: Cannot allocate resource for mainboard
 [    0.601548] platform eisa.0: Cannot allocate resource for EISA slot 1
 [    0.601549] platform eisa.0: Cannot allocate resource for EISA slot 2
 [    0.601557] platform eisa.0: Cannot allocate resource for EISA slot 3
@@ -45,8 +82,34 @@ an output:
 [    0.601559] platform eisa.0: Cannot allocate resource for EISA slot 6
 [    0.601560] platform eisa.0: Cannot allocate resource for EISA slot 7
 [    0.601561] platform eisa.0: Cannot allocate resource for EISA slot 8
-[  123.846749] kauditd_printk_skb: 149 callbacks suppressed
+[  123.846749] kauditd_printk_skb: Callbacks suppressed
 ```
+#### **Short Explanation**
+1. **IMA Log Warning**  
+   ```bash
+   [    0.601295] device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled.
+   ```
+   - **Integrity Measurement Architecture (IMA)** logs duplicate measurements.
+   - This is a **security feature**, and the warning means that duplicate entries **won’t be ignored**.
+
+2. **EISA Resource Allocation Errors**  
+   ```bash
+   [    0.601546] platform eisa.0: Cannot allocate resource for mainboard
+   [    0.601548] platform eisa.0: Cannot allocate resource for EISA slot 1
+   ```
+   - **EISA (Old Expansion Slot System)**:  
+     - These messages indicate that the **system doesn’t have EISA hardware**, but the kernel **still checks for it**.
+     - **Usually safe to ignore** unless dealing with legacy hardware.
+
+3. **Audit Log Suppression**  
+   ```bash
+   [  123.846749] kauditd_printk_skb: Callbacks suppressed
+   ```
+   - The **Linux Audit System (`kauditd`)** logs security events.
+   - This message means **multiple audit logs were combined to avoid flooding the system**.
+
+---
+
 and to monitor logs **in real time**:
 ```bash
 dmesg -w
