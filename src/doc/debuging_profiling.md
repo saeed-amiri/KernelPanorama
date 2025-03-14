@@ -25,7 +25,7 @@ some example of the output:
 [    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
 [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000007ffdafff] usable
 ```
-#### **Short Explanation of `dmesg` Output**  
+#### **Short Explanation of `dmesg` Output**
 
 ```bash
 [    0.000000] Linux version 6.8.0-52-generic (Ubuntu 6.8.0-52.53-generic 6.8.12)
@@ -35,11 +35,11 @@ some example of the output:
 ```bash
 [    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.8.0-52-generic root=UUID=REDACTED ro quiet splash vt.handoff=7
 ```
-- **Kernel boot parameters**:  
-  - `BOOT_IMAGE=...` → Kernel image loaded at boot.  
-  - `root=UUID=REDACTED` → Root filesystem identifier.  
-  - `ro` → Mounts root filesystem as **read-only** initially.  
-  - `quiet splash` → Hides detailed boot logs, shows a splash screen.  
+- **Kernel boot parameters**:
+  - `BOOT_IMAGE=...` → Kernel image loaded at boot,
+  - `root=UUID=REDACTED` → Root filesystem identifier,
+  - `ro` → Mounts root filesystem as **read-only** initially,
+  - `quiet splash` → Hides detailed boot logs, shows a splash screen.
 
 ```bash
 [    0.000000] KERNEL supported cpus:
@@ -55,14 +55,14 @@ some example of the output:
 [    0.000000] BIOS-provided physical RAM map:
 [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
 ```
-- **Memory map from BIOS**:  
-  - **Usable** → Available to the OS.  
+- **Memory map from BIOS**:
+  - **Usable** → Available to the OS,
   - **Reserved** → Used by BIOS or hardware.
 
-**TL;DR:**  
-- Kernel version & boot settings.  
-- Supported CPUs.  
-- Memory layout (usable vs. reserved).  
+**TL;DR:**
+- Kernel version & boot settings.
+- Supported CPUs.
+- Memory layout (usable vs. reserved).
 
 - Useful for checking **boot logs, hardware issues**, and **drivers errors**.
 ---
@@ -85,23 +85,23 @@ an output:
 [  123.846749] kauditd_printk_skb: Callbacks suppressed
 ```
 #### **Short Explanation**
-1. **IMA Log Warning**  
+1. **IMA Log Warning**
    ```bash
    [    0.601295] device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled.
    ```
    - **Integrity Measurement Architecture (IMA)** logs duplicate measurements.
    - This is a **security feature**, and the warning means that duplicate entries **won’t be ignored**.
 
-2. **EISA Resource Allocation Errors**  
+2. **EISA Resource Allocation Errors**
    ```bash
    [    0.601546] platform eisa.0: Cannot allocate resource for mainboard
    [    0.601548] platform eisa.0: Cannot allocate resource for EISA slot 1
    ```
-   - **EISA (Old Expansion Slot System)**:  
+   - **EISA (Old Expansion Slot System)**:
      - These messages indicate that the **system doesn’t have EISA hardware**, but the kernel **still checks for it**.
      - **Usually safe to ignore** unless dealing with legacy hardware.
 
-3. **Audit Log Suppression**  
+3. **Audit Log Suppression**
    ```bash
    [  123.846749] kauditd_printk_skb: Callbacks suppressed
    ```
@@ -115,7 +115,7 @@ and to monitor logs **in real time**:
 dmesg -w
 ```
 
-**Example of Checking for a Kernel Crash (Oops/Panic)
+**Example of Checking for a Kernel Crash (Oops/Panic):**
 ```bash
 dmesg | grep -i "oops"
 ```
@@ -137,7 +137,7 @@ echo ` | sudo tee /proc/sys/kernel/sysrq
 ```
 **Useful SysRq Commands:**
 *This command will reboot the system!*
-```bash 
+```bash
 echo b > /proc/sysrq-trigger
 ```
 Sync files and remount disks read-only before rebooting:
@@ -150,12 +150,14 @@ echo b > /proc/sysrq-trigger
 - `u` -> Unmount filesystem safely,
 - `b` -> Reboot immediately.
 
-### 1.3 Debugging a Running Kernel with `kdb` and `kgb`
+### 1.3 Debugging a Running Kernel with `kdb` and `kgdb`
+*GDB = GNU Debugger*
+
 For **live kernel debugging**, Linux provides:
 - `kdb` -> A Built-in kernel debugger,
 - `kgdb` -> Remote debugging with **GDB**.
 
-#### ***Enable Kernel Debugging (Boot Parameter)**
+#### **Enable Kernel Debugging (Boot Parameter)**
 To enable Kernel Debugging features, add this to the kernel boot options:
 ```bash
 kgdboc=ttys0,115200 kgdbwait
@@ -164,8 +166,6 @@ kgdboc=ttys0,115200 kgdbwait
 - The system will wait for **GDB** to attach before booting.
 
 #### **Attach GDB to the Kernel (`kgdb`)**
-*GDB = GNU Debugger*
-
 On a **remote system**:
 ```bash
 gdb vmlinux
@@ -175,11 +175,11 @@ Then connect to the target system:
 target remote /dev/ttys0
 ```
 Now we can:
-- Set breakpoints (`b function_name),
+- Set breakpoints (`b function_name`),
 - Step through execution (`step`, `next`),
 - Print kernel variables (`p variable_name`).
 
-#### **Analyzing Kernel Crashes with `kdump`
+#### **Analyzing Kernel Crashes with `kdump`**
 `kdump` captures a **memory dump** when the kernel crashed, useful for **post-mortem analysis**.
 
 #####  What is postmortem?
@@ -206,5 +206,3 @@ echo c > /proc/sysqr-trigger
 ```bash
 sudo crash /usr/lib/debug/boot/vmlinux-$(uname -r) /varcrash/vmcore
 ```
-
-
