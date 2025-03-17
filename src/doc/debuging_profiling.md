@@ -3,7 +3,7 @@
 Kernel debugging and profiling help identify performance bottlenecks, crashes, and unexpected behavior.
 
 ## 1. Kernel Debugging: Finding and Fixing Issues
-### 1.1 Understanding Kennel Logs (`dmesg)
+### 1.1 Understanding Kennel Logs (`dmesg`)
 When the kernel encounters an issue, it logs messages in the ring buffer, which you can access with:
 ```bash
 dmesg | less
