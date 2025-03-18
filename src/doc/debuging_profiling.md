@@ -330,3 +330,38 @@ bpftrace -l
 ```bash
 sudo bpftrace -e 'tracepoint:sched:sched_switch { printf("%s -> %s\n", args.prev_comm, args.next_comm); }'
 ```
+
+## 3. Debugging Kernel Modules
+In developing **kernel modules**, debugging can be difficult since `printf` does not work in kernel space. Instead, use:
+
+### 3.1 Debug with `printk` (Kernel Logs)
+```c
+prink(KERN_INFO "This is a debug message\n");
+```
+check the logs:
+```bash
+dmesg | tail -50
+```
+
+### 3.2 Debug with `debugfs`
+Create a debug entry:
+```c
+debugfs_create_file("my_debug", 0644, NULL, NULL, &fops);
+```
+Read the output:
+```bash
+cat /sys/kernel/debug/my_debug
+```
+
+## 4. Summary: Key Debugging and Profiling Commands
+|Task                    |	Command                        |
+|------------------------|---------------------------------|
+|View kernel logs	       |`dmesg`                          |
+|Live system debugging   |	`sysrq`                        |
+|Enable kernel debugging | Add `kgdboc` in boot options    |
+|Debug kernel with GDB   | `gdb vmlinux` + `target remote` |
+|Capture a kernel crash  | `kdump`                         |
+|Profile CPU usage       | `perf top`                      |
+|Profile a program       | `perf record -g ./program`      |
+|Trace function calls	   | `ftrace`                        |
+|Use eBPF tracing        | `bpftrace -e '...'`             |
