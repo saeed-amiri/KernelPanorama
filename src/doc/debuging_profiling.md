@@ -206,3 +206,127 @@ echo c > /proc/sysqr-trigger
 ```bash
 sudo crash /usr/lib/debug/boot/vmlinux-$(uname -r) /varcrash/vmcore
 ```
+
+## 2. Kernel Profiling: Measuring Performance
+Once the kernel is running, **profiling** tools help analyze **CPU, Memory, and I/O performance**.
+
+### 2.1 Using `perf` for Performance Analysis
+`perf` is the **standard Linux profiling tool** for kernel and user-space performance.
+
+**Install** `perf`
+```bash
+sudo apt install linux-tools-common linux-tools-$(uname -r)
+```
+**Monitor System-wide Performance**
+```bash
+sudo perf top
+```
+Example of the output:
+```bash
+Samples: 65K of event 'cycles:P', 4000 Hz, Event count (approx.): 36587273962 lost: 0/0 drop: 0/0
+Overhead  Shared Object                          Symbol
+   6.10%  libvk_swiftshader.so                   [.] 0x00000000000f65a4
+   4.51%  libvk_swiftshader.so                   [.] 0x00000000000f659f
+   2.61%  libvk_swiftshader.so                   [.] 0x00000000000f6577
+   2.55%  libvk_swiftshader.so                   [.] 0x00000000000f6587
+   2.52%  libvk_swiftshader.so                   [.] 0x00000000000f658f
+   2.50%  libvk_swiftshader.so                   [.] 0x00000000000f6583
+   2.41%  libvk_swiftshader.so                   [.] 0x00000000000f658b
+   2.33%  libvk_swiftshader.so                   [.] 0x00000000000f6593
+   2.33%  libvk_swiftshader.so                   [.] 0x00000000000f659b
+   2.28%  libvk_swiftshader.so                   [.] 0x00000000000f6597
+   1.99%  libc.so.6                              [.] pthread_mutex_unlock@@GLIBC_2.2.5
+   1.98%  libc.so.6                              [.] pthread_mutex_lock@@GLIBC_2.2.5
+   1.24%  [kernel]                               [k] clear_bhb_loop
+   0.92%  [kernel]                               [k] __calc_delta.constprop.0
+   0.90%  [kernel]                               [k] pick_next_task_fair
+   0.85%  libvk_swiftshader.so                   [.] 0x00000000000f6595
+   0.78%  [kernel]                               [k] entry_SYSCALL_64
+   0.73%  [kernel]                               [k] update_curr
+   0.70%  [kernel]                               [k] pick_eevdf
+   0.67%  [kernel]                               [k] pvclock_clocksource_read_nowd
+For a higher level overview, try: perf top --sort comm,dso
+```
+
+#### Understanding the `perf top` output
+1. **Samples**:  
+   - `65K of event 'cycles:P'` means perf has collected 65,000 samples of the “CPU cycles” performance event (i.e., how many CPU cycles code is consuming).
+   - `4000 Hz` is the sampling frequency, i.e., perf tries to sample about 4000 times per second.
+   - `Event count (approx.): 36587273962` is an estimate of the total number of CPU cycles recorded in those samples.
+
+2. **Overhead**:  
+   - The “Overhead” column shows the percentage of samples for which the program counter (instruction pointer) was in that function/symbol. In simpler terms, it’s an approximation of how much CPU time is spent in that particular function relative to the total sampled time.
+
+3. **Shared Object / DSO (Dynamic Shared Object)**:  
+   - This column tells you which library or binary the function/symbol belongs to. For example, `libvk_swiftshader.so` is a Vulkan software rendering library (SwiftShader), `libc.so.6` is the C standard library, and `[kernel]` refers to the Linux kernel.
+
+4. **Symbol**:  
+   - This is the function or symbol name. Sometimes, especially in stripped binaries or JIT-generated code, you only see numeric addresses (`0x00000000000f65a4`) rather than a more user-friendly symbol name (e.g., `vkSomeFunction`).
+
+#### What the output means
+
+- **`libvk_swiftshader.so`** is at the top of the list, meaning a significant portion of CPU cycles is spent in this library. If you’re running a 3D application or something that uses Vulkan with SwiftShader, this is expected—SwiftShader is a CPU-based implementation of the Vulkan (or OpenGL) APIs, and it’s known to be quite CPU-intensive compared to hardware GPU acceleration.
+  
+- **`pthread_mutex_lock` / `pthread_mutex_unlock`** from `libc.so.6`: This indicates that your program(s) are frequently acquiring and releasing mutexes. It’s not unusual in multi-threaded applications.
+
+- **`[kernel]`** symbols like `pick_next_task_fair`, `update_curr`, etc. are part of the CPU scheduler’s logic. Seeing some overhead in these functions is normal as the kernel decides which thread gets the CPU next.
+
+- **`clear_bhb_loop`, `pvclock_clocksource_read_nowd`,** etc. are lower-level kernel or hardware-related routines. A small percentage there is usually normal overhead for kernel functionality and housekeeping.
+
+---
+
+### Profile a Specific Command
+```bash
+sudo perf record -g ./my_program
+```
+- Runs `my_programs` and records execution data.
+
+### View Detailed Performance Report
+```bash
+sudo perf report
+```
+- Analyzes collected data
+
+### Trace System Calss (`perf trace`)
+```bash
+sudo perf trace -p $(pidof firefox)
+```
+or for only one PID
+```bash
+# Use 'pidof -s' (short for '--single-shot') to return only one PID
+sudo perf trace -p $(pidof -s firefox)
+```
+- Trace **syscalls** made by **Firefox**.
+
+### 2.2 Using `ftrace` for Kernel Function Tracing
+`ftrace` us the kernel's built-in function tracer.
+
+**Enable Function Tracing**
+```bash
+echo function > /sys/kernel/debug/tracing/current_tracer
+echo 1 > /sys/kernel/debug/tracing/tracing_on
+```
+**View Tracing Output**
+```bash
+cat /sys/kernel/debug/tracing/trace
+```
+- Shows function calls executed by the kernel.
+
+**Stop Tracing**
+```bash
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+```
+
+### 2.3 Using `eBPF` for Advanced Observably
+`eBPF` (**Extended Berkeley Packet Filter**) provides a low-overhead way to analyze kernel activity.
+
+#### List Available `bpftrace` Programs
+```bash
+bpftrace -l
+```
+[You may need to install it, and run it as sudoer.]
+
+#### Trace Process Scheduling
+```bash
+sudo bpftrace -e 'tracepoint:sched:sched_switch { printf("%s -> %s\n", args.prev_comm, args.next_comm); }'
+```
