@@ -1,4 +1,4 @@
-### What are to Learn in Red Hat System Administration I:
+### What are to Learn in Red Hat System Administration I (RH124):
 
 #### 1. **Accessing the Command Line**
 - Using `bash`
