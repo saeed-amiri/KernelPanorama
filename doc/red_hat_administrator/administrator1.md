@@ -5,7 +5,7 @@ RH124 is about:
 * Performing essential admin tasks manually, 
 * Prepping you for automation later with Ansible,
 
-### 1. Check Shell, Terminal, and User
+## 1. Check Shell, Terminal, and User
 ```bash
 echo $SHELL
 echo $TERM
@@ -18,7 +18,7 @@ xterm-256color
 santiago
 ```
 
-#### Display System Info
+### Display System Info
 ```bash
 hostnamectl
 ```
@@ -64,7 +64,7 @@ output:
 16:33:20 up 26 min,  2 users,  load average: 0.03, 0.13, 0.10
 ```
 
-#### Switch Between Consoles
+### Switch Between Consoles
 On a GUI VM, try:
 * `Ctrl` + `Alt` + `F2`: open virtual console
 
@@ -75,10 +75,10 @@ Use tty to see which terminal you're on:
 tty
 ```
 
-### Managing Files from the Command Line
+## Managing Files from the Command Line
 Similar to Debian
 
-####  Wildcards and Quoting
+###  Wildcards and Quoting
 
 | Symbol | Meaning           | Example                  |
 |--------|-------------------|--------------------------|
@@ -91,7 +91,7 @@ touch file1.txt file2.txt fileA.txt
 ls file*.txt
 ls file[12].txt
 ```
-#### Inspecting Files
+### Inspecting Files
 ```bash
 du -sh .
 324K    .
@@ -127,10 +127,10 @@ The key filesystem partitions here:
 - `/dev/vda1`: Boot partition (960 MB size).
 - The rest (`tmpfs` and `devtmpfs`) are temporary file systems stored in RAM and used by the OS for temporary storage. They don’t contain sensitive information.
 
-### 3. Managing Local Users and Groups
+## 3. Managing Local Users and Groups
 Create, manage, and configure users, groups, passwords, and permissions.
 
-#### 1. **Create a New User**
+### 1. **Create a New User**
 
 ```bash
 sudo useradd john
@@ -143,7 +143,7 @@ grep john /etc/passwd
 ls -l /home/john/
 ```
 
-#### 2. **User Details Breakdown**
+### 2. **User Details Breakdown**
 These files are your admin playground:
 
 | File               | Purpose                         |
@@ -153,7 +153,7 @@ These files are your admin playground:
 | `/etc/group`       | Group definitions               |
 | `/etc/gshadow`     | Group passwords (rarely used)   |
 
-#### 3. **Group Management**
+### 3. **Group Management**
 
 ```bash
 sudo groupadd devs
@@ -171,7 +171,7 @@ sudo usermod -g devs john
 - **Primary group**: shown in `id john` → 1 main group
 - **Supplementary groups**: additional memberships
 
-#### 4. **Delete a User or Group**
+### 4. **Delete a User or Group**
 
 ```bash
 sudo userdel john              # keep home dir
@@ -179,7 +179,7 @@ sudo userdel -r john           # remove home dir
 sudo groupdel devs
 ```
 
-#### 5. **Password Management**
+### 5. **Password Management**
 
 ```bash
 sudo passwd john               # set password
@@ -187,7 +187,7 @@ sudo chage -l john             # check aging info
 sudo chage -M 60 john          # force password change every 60 days
 ```
 
-#### 6. **Force Password Reset at Next Login**
+### 6. **Force Password Reset at Next Login**
 
 ```bash
 sudo chage -d 0 john
@@ -195,12 +195,10 @@ sudo chage -d 0 john
 
 Next time `john` logs in, they must change their password.
 
-Excellent — let’s break these down clearly. These are small topics, but **super important** for Red Hat sysadmin work and EX200. Let’s go 🔍
 
+### 7. `/etc/skel/` — Default Files for New Users
 
-#### 7. `/etc/skel/` — Default Files for New Users
-
-#####  What it is:
+####  What it is:
 When you create a new user (e.g., with `useradd`), files in `/etc/skel/` are **automatically copied** into the user’s home directory.
 
 ```bash
@@ -214,7 +212,7 @@ Typical contents:
 .bash_logout
 ```
 
-##### Why it matters:
+#### Why it matters:
 - These files set up a **default shell environment** for every new user.
 - You can add custom files (e.g., a welcome message, `.vimrc`, etc.) to `/etc/skel/` to give users consistent settings.
 
@@ -228,30 +226,30 @@ ls /home/testuser/
 You’ll see `welcome.txt` inside `testuser`’s home dir.
 
 
-#### Locking and Unlocking Users
+### Locking and Unlocking Users
 
-##### Lock a user (disable login):
+#### Lock a user (disable login):
 ```bash
 sudo passwd -l username
 ```
 
 This **adds a `!`** in front of the password hash in `/etc/shadow`, disabling it.
 
-#####  Unlock the user:
+####  Unlock the user:
 ```bash
 sudo passwd -u username
 ```
 
 This removes the `!`, allowing login again.
 
-##### Use cases:
+#### Use cases:
 - Temporarily disable accounts (e.g., leaving employees)
 - Quickly secure an account without deleting it
 
 
-####  `/etc/passwd`, `/etc/shadow`, `/etc/group` — Formats
+###  `/etc/passwd`, `/etc/shadow`, `/etc/group` — Formats
 
-##### `/etc/passwd` — User Accounts
+#### `/etc/passwd` — User Accounts
 
 Each line = 1 user
 
@@ -276,7 +274,7 @@ john:x:1001:1001:John Doe:/home/john:/bin/bash
 | `/bin/bash`  | Login shell                 |
 
 
-#### `/etc/shadow` — Encrypted Passwords
+### `/etc/shadow` — Encrypted Passwords
 
 Format:
 ```text
@@ -298,7 +296,7 @@ john:$6$Hd.28...:19514:0:99999:7:::
 | `7`               | Warn user before expiration            |
 | Others            | Rarely used                            |
 
-#### `/etc/group` — Group Info
+### `/etc/group` — Group Info
 
 Format:
 ```text
@@ -318,7 +316,7 @@ devs:x:1002:john,alice
 | `john,alice` | Group members (optional)                     |
 
 
-#### Summary
+### Summary
 
 | File              | Stores                     |
 |-------------------|----------------------------|
@@ -328,3 +326,122 @@ devs:x:1002:john,alice
 | `/etc/skel/`      | Default files for new users|
 | `passwd -l/-u`    | Lock/unlock user accounts  |
 
+## 4. File Permissions and Ownership
+*SEE [security access control](../doc/general_review/security_access_control.md)*
+
+Control *who* can read, write, and execute *what*, and understand how ownership affects access.
+
+
+###  1. **Understanding File Permissions (ls -l)**
+
+```bash
+ls -l filename
+```
+
+Example output:
+```bash
+-rw-r--r--. 1 alice devs  9312 Mar 31 20:23 file.txt
+```
+
+Breakdown:
+
+| Field         | Meaning                   |
+|---------------|---------------------------|
+| `-rw-r--r--`  | File type and permissions |
+| `1`           | Hard link count           |
+| `alice`       | File owner                |
+| `devs`        | Group owner               |
+| `9312`        | File size in bytes        |
+| `Mar 31 20:23`| Timestamp                 |
+| `file.txt`    | File name                 |
+
+#### Permission symbols:
+
+```text
+[ file type ] [ user ] [ group ] [ others ]
+    -           rw-      r--       r--
+```
+
+- `r` = read
+- `w` = write
+- `x` = execute
+- `-` = permission not given
+
+## 2. **Change Permissions – chmod**
+
+### Symbolic mode:
+```bash
+chmod u+x script.sh       # add execute for user
+chmod g-w file.txt        # remove write for group
+chmod o=r myfile          # only read for others
+```
+
+#### Octal mode:
+
+| Number | Permission |
+|--------|------------|
+| 7      | rwx        |
+| 6      | rw-        |
+| 5      | r-x        |
+| 4      | r--        |
+| 0      | ---        |
+
+```bash
+chmod 755 myscript.sh     # u=rwx, g=rx, o=rx
+chmod 644 file.txt        # u=rw, g=r, o=r
+```
+
+### 3. **Change Ownership – chown & chgrp**
+
+```bash
+chown alice file.txt            # change user owner
+chown alice:devs file.txt       # change user & group
+chgrp devs file.txt             # change group only
+```
+
+### 4. **Default Permissions – umask**
+
+Check your default file permission mask:
+
+```bash
+umask
+```
+
+- Default: `0022` → files get `644`, dirs get `755`
+
+Calculate default permission:
+```
+Permissions = 666 (file) or 777 (dir) - umask
+```
+
+To temporarily change it:
+```bash
+umask 0077                    # very private: only user has access
+```
+
+### 5. **Special Permissions**
+
+| Name           | Symbol        | Purpose           |
+|----------------|---------------|-------------------|
+| **SUID**       | `s` on user   | Run as file owner |
+| **SGID**       | `s` on group  | Run with group privileges or retain group on new files in dirs |
+| **Sticky Bit** | `t` on others | Restrict file deletion in shared dirs like `/tmp` |
+
+#### Examples:
+
+- **SUID**: `/usr/bin/passwd` → lets users change their password
+
+```bash
+ls -l /usr/bin/passwd
+# -rwsr-xr-x
+```
+
+- **SGID on a dir**:
+```bash
+chmod g+s /project
+```
+
+- **Sticky bit on /tmp**:
+```bash
+chmod +t /tmp
+```
