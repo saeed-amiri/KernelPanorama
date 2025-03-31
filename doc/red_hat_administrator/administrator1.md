@@ -533,3 +533,84 @@ Use `n` for next match, `N` for previous.
 ```
 Replaces **all** “foo” with “bar” in the file.
 
+
+## 6. Archiving and Compression (tar, gzip, xz)
+
+**Archive**, **compress**, **extract**, and **inspect** files using CLI tools — essential for backups, transfers, and deployments.
+
+
+###  1. **Archiving with `tar`** (The King of Archiving)
+
+#### Create a `.tar` archive:
+```bash
+tar -cvf archive.tar file1 file2 dir/
+```
+
+| Option | Meaning         |
+|--------|------------------|
+| `-c`   | Create           |
+| `-v`   | Verbose (show files) |
+| `-f`   | Filename to create |
+
+#### List contents (without extracting):
+```bash
+tar -tvf archive.tar
+```
+
+#### Extract archive:
+```bash
+tar -xvf archive.tar
+```
+
+| `-x` | e**X**tract |
+
+**Extract to specific directory**:
+```bash
+tar -xvf archive.tar -C /path/to/extract/
+```
+
+###  2. **Compress with gzip and xz**
+
+#### Compress an archive with `gzip`:
+```bash
+gzip archive.tar
+```
+* This creates `archive.tar.gz` (or `.tgz`)
+
+To decompress:
+```bash
+gunzip archive.tar.gz
+
+
+#### Compress with `xz`:
+```bash
+xz archive.tar        # becomes archive.tar.xz
+unxz archive.tar.xz
+```
+
+More control:
+```bash
+xz -k -v archive.tar   # keep original, show progress
+```
+
+
+### 3. **Combined: Create & Compress in One Go**
+
+| Command | Result |
+|--------|--------|
+| `tar -czvf archive.tar.gz file1 dir/` | tar + gzip |
+| `tar -cjvf archive.tar.bz2 file1 dir/` | tar + bzip2 |
+| `tar -cJvf archive.tar.xz file1 dir/`  | tar + xz |
+
+- `z` = gzip
+- `j` = bzip2
+- `J` = xz
+
+
+###  4. **Extract a Compressed Archive**
+
+```bash
+tar -xzvf archive.tar.gz   # gzip
+tar -xjvf archive.tar.bz2  # bzip2
+tar -xJvf archive.tar.xz   # xz
+```
