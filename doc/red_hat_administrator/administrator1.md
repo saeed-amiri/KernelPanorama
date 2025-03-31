@@ -580,7 +580,7 @@ gzip archive.tar
 To decompress:
 ```bash
 gunzip archive.tar.gz
-
+```
 
 #### Compress with `xz`:
 ```bash
@@ -614,3 +614,256 @@ tar -xzvf archive.tar.gz   # gzip
 tar -xjvf archive.tar.bz2  # bzip2
 tar -xJvf archive.tar.xz   # xz
 ```
+
+## `dnf`
+
+#### **DNF = Dandified YUM**
+
+- A **modern package manager** for RHEL, Fedora, CentOS, Rocky, Alma
+- Replaced **YUM** (`Yellowdog Updater Modified`) starting from **RHEL 8**
+- Handles:
+  - Package install/remove
+  - Dependency resolution
+  - Updates
+  - Repos
+  - GPG key verification
+  - Metadata caching
+
+#### How DNF Works (Behind the Scenes)
+
+- It's written in **Python + C**
+- Works on **RPM** files (binary packages)
+- Parses repo metadata in `/etc/yum.repos.d/`
+- Maintains a **local SQLite metadata cache**
+- Uses **libsolv** for dependency resolution (faster, smarter than YUM)
+
+#### You can inspect the config:
+```bash
+cat /etc/dnf/dnf.conf
+```
+
+### What is `rpm`?
+
+#### **RPM = Red Hat Package Manager**
+
+- Low-level tool that handles **.rpm files**
+- Think of it like `dpkg` in Debian
+
+```bash
+sudo rpm -ivh somefile.rpm
+```
+
+It does **not** auto-resolve dependencies — it will fail if deps are missing.
+
+#### Used Internally By:
+- `dnf`
+- Anaconda (during install)
+- Kickstart
+- Some container tools (for OS layering)
+
+### DNF vs RPM: Who Does What?
+
+| Task                        | Use `dnf`? | Use `rpm`? |
+|----------------------------|------------|------------|
+| Install a package          | ✅         | ⚠️ (no deps) |
+| Remove a package           | ✅         | ✅         |
+| Query installed packages   | ✅         | ✅         |
+| Install `.rpm` from disk   | ✅ (smart) | ✅ (manual) |
+| Query ownership of a file  | ❌         | ✅         |
+| Manage repos               | ✅         | ❌         |
+
+
+### Security: GPG Keys
+
+- When installing from a repo, `dnf` checks **GPG signatures**
+- Keys are stored in:
+```bash
+/etc/pki/rpm-gpg/
+```
+
+To view trusted keys:
+```bash
+rpm -q gpg-pubkey
+```
+
+### Repo Metadata
+
+Stored in:
+```bash
+/var/cache/dnf/
+```
+
+Each repo has metadata like:
+- `repodata/primary.xml.gz`
+- `filelists.xml.gz`
+
+You can clear it:
+```bash
+sudo dnf clean all
+```
+
+And rebuild it:
+```bash
+sudo dnf makecache
+```
+
+### `dnf history` — See & Undo Package Transactions
+
+DNF keeps track of every action it performs: installs, removals, upgrades, etc.
+
+#### View full history:
+```bash
+dnf history
+```
+
+You’ll get output like:
+```
+ID | Command line             | Date and time    | Action(s)  | Altered
+---+--------------------------+------------------+------------+--------
+ 5 | install httpd            | 2025-03-31 18:00 | Install    |    10
+ 4 | remove nano              | 2025-03-31 17:30 | Remove     |     1
+```
+
+#### Undo a transaction:
+```bash
+sudo dnf history undo 5
+```
+This rolls back what you did in transaction ID 5.
+
+> It doesn’t always fully reverse complex dependency trees — but it's incredibly useful.
+
+#### Redo a transaction:
+```bash
+sudo dnf history redo 4
+```
+
+### `dnf mark install` vs `dnf mark remove`
+
+This is about **package status tracking** — whether a package is considered “user-installed” or a “dependency”.
+
+#### `dnf mark install <pkg>`
+Manually mark a package as explicitly installed, even if it was pulled in as a dependency.
+
+```bash
+sudo dnf mark install python3
+```
+
+#### `dnf mark remove <pkg>`
+Mark it as “removable” (i.e., no longer needed by anything).
+
+```bash
+sudo dnf mark remove httpd
+```
+
+#### Use with `dnf autoremove`
+If you don’t mark packages you want to keep, `dnf autoremove` could remove them accidentally.
+
+> Think of this like apt’s `apt-mark manual` vs `apt-mark auto`.
+
+
+### `dnf config-manager` (from `dnf-plugins-core`)
+
+This is an **extension** of DNF, provided by the package:
+
+```bash
+sudo dnf install dnf-plugins-core
+```
+
+#### What it does:
+Allows you to **enable/disable repos**, **add repos**, **set persistent config options**.
+
+#### Examples:
+
+Enable a repo:
+```bash
+sudo dnf config-manager --set-enabled codeready-builder-for-rhel-8-x86_64-rpms
+```
+
+Disable a repo:
+```bash
+sudo dnf config-manager --set-disabled <repo-id>
+```
+
+Add a repo:
+```bash
+sudo dnf config-manager --add-repo=http://my.repo.url/repo.repo
+```
+
+You can see enabled repos with:
+```bash
+dnf repolist
+```
+
+### `rpm --verify` — Check File Integrity
+
+This checks **if a package's files have changed** from when it was first installed (e.g., manually edited config files, modified binaries, etc.)
+
+#### Basic usage:
+```bash
+rpm -V bash
+```
+
+#### Output:
+```
+S.5....T.  c /etc/bashrc
+```
+
+Each letter means something changed:
+
+| Char | Meaning                  |
+|------|--------------------------|
+| S    | File size                |
+| M    | Mode (permissions)       |
+| 5    | MD5 checksum             |
+| D    | Device                   |
+| L    | Symlink                  |
+| U    | User ownership           |
+| G    | Group ownership          |
+| T    | Modification time        |
+| c    | Config file              |
+
+If no output → package files are unchanged.
+
+### `rpmdev-extract` — Extract `.src.rpm` or `.rpm` Files
+
+This comes from the **`rpmdevtools`** package:
+
+```bash
+sudo dnf install rpmdevtools
+```
+
+#### Extract contents of a source RPM:
+
+```bash
+rpmdev-extract mypackage.src.rpm
+```
+
+It will unpack the `.spec` file and source tarballs.
+
+#### Also works on binary `.rpm` files:
+
+```bash
+rpmdev-extract some.rpm
+```
+
+You get:
+```
+mypackage/
+├── mypackage.spec
+├── source.tar.gz
+```
+
+Useful for:
+- Analyzing how a package is built
+- Rebuilding or modifying RPMs
+- Inspecting licensing, dependencies, install scripts
+
+### Summary Cheat Sheet
+
+| Command                       | Purpose                                      |
+|-------------------------------|----------------------------------------------|
+| `dnf history`                 | View/undo/redo past installs & removals      |
+| `dnf mark install/remove`     | Control autoremove behavior                  |
+| `dnf config-manager`          | Enable/disable/add repos                     |
+| `rpm --verify`                | Check integrity of installed files           |
+| `rpmdev-extract`              | Unpack `.src.rpm` and `.rpm` for inspection  |
