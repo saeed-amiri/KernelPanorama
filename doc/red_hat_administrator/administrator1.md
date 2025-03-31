@@ -327,7 +327,7 @@ devs:x:1002:john,alice
 | `passwd -l/-u`    | Lock/unlock user accounts  |
 
 ## 4. File Permissions and Ownership
-*SEE [security access control](../doc/general_review/security_access_control.md)*
+*SEE [security access control](../general_review/security_access_control.md)*
 
 Control *who* can read, write, and execute *what*, and understand how ownership affects access.
 
