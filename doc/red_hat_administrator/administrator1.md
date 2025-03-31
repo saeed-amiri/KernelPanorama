@@ -445,3 +445,91 @@ chmod g+s /project
 ```bash
 chmod +t /tmp
 ```
+
+## 5. Editing Text Files from the Command Line
+
+Create, edit, save, and navigate text files using the `vim` editor — a vital skill for sysadmins configuring scripts, services, and system files.
+
+
+### Step 1: Launch `vim`
+
+```bash
+vim test.txt
+```
+
+- If the file doesn't exist, it creates a new one.
+- You're now in the **normal mode**.
+
+### Step 2: Understand `vim` Modes
+
+| Mode         | Purpose                                 |
+|--------------|------------------------------------------|
+| **Normal**   | Navigate, delete, copy, paste            |
+| **Insert**   | Type/edit text                           |
+| **Command**  | Save, quit, search, substitute, etc.     |
+
+You start in **Normal mode**.
+
+
+### Step 3: Enter Insert Mode (Start Writing)
+
+In normal mode, press:
+```text
+i
+```
+Now you're in **insert mode**. Start typing anything.
+
+
+### Step 4: Save and Quit
+
+First, press:
+```text
+ESC    # (to leave insert mode)
+```
+
+Then, type one of the following in **command mode**:
+
+| Command      | Action                      |
+|--------------|-----------------------------|
+| `:w`         | Save                        |
+| `:q`         | Quit                        |
+| `:wq`        | Save and quit               |
+| `:q!`        | Quit without saving         |
+
+
+### Step 5: Navigate Inside a File
+
+In **normal mode**:
+| Key     | Action                  |
+|---------|-------------------------|
+| `h` `l` | move left/right         |
+| `j` `k` | move down/up            |
+| `0`     | move to beginning of line |
+| `$`     | move to end of line     |
+| `G`     | move to end of file     |
+| `gg`    | move to start of file   |
+
+### Step 6: Delete, Copy, Paste
+
+| Command | Action                    |
+|---------|---------------------------|
+| `dd`    | delete (cut) current line |
+| `yy`    | copy current line         |
+| `p`     | paste                     |
+| `u`     | undo                      |
+
+### Step 7: Search and Replace
+
+#### Search:
+```bash
+/foo
+```
+Moves cursor to first match of “foo”.  
+Use `n` for next match, `N` for previous.
+
+#### Replace:
+```bash
+:%s/foo/bar/g
+```
+Replaces **all** “foo” with “bar” in the file.
+
