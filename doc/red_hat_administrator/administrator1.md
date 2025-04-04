@@ -1567,3 +1567,119 @@ sudo curl -I http://localhost:8080
 sudo firewall-cmd --reload
 ```
 
+## 13. Boot Process & Troubleshooting (GRUB, Targets, Recovery)
+
+### Goal: Understand the Linux boot process, manage bootloaders, system targets, and recover systems when they fail to boot.
+
+
+### 1. Understand the Boot Process
+
+| Step          | Description                                  |
+|---------------|----------------------------------------------|
+| **BIOS/UEFI** | Hardware initializes, locates bootloader     |
+| **GRUB2**     | Bootloader — lets you choose kernel/initrd   |
+| **Kernel**    | Loads system hardware and mounts rootfs      |
+| **initramfs** | Initial temporary root filesystem            |
+| **systemd**   | PID 1 process starts user space and services |
+
+Check kernel version:
+```bash
+uname -r
+```
+
+View boot logs:
+```bash
+journalctl -b
+```
+
+### 2. GRUB2 — Bootloader
+
+GRUB2 config lives at:
+```bash
+/etc/default/grub
+```
+
+View default boot target:
+```bash
+sudo grubby --default-kernel
+```
+
+#### Edit kernel boot parameters **temporarily**:
+At boot:
+- Press `e` in GRUB menu
+- Modify kernel line (e.g., add `single`, or `rd.break` for rescue shell)
+- Boot with `Ctrl + X`
+
+#### Regenerate GRUB config:
+```bash
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+```
+
+### 3. Rescue & Emergency Targets
+
+| Target               | Purpose                                               |
+|----------------------|-------------------------------------------------------|
+| **rescue.target**    | Single-user mode with basic services                  |
+| **emergency.target** | Minimal shell, no services (useful for fsck, repairs) |
+
+Boot into rescue mode:
+```bash
+sudo systemctl isolate rescue.target
+```
+
+Check default target:
+```bash
+systemctl get-default
+```
+
+Change default boot target:
+```bash
+sudo systemctl set-default multi-user.target
+sudo systemctl set-default graphical.target
+```
+
+### 4. Recover Lost Root Password (EX200 loves this!)
+
+Steps:
+1. Reboot system.
+2. At GRUB menu, press **e**.
+3. Find the kernel line (`linux16 ...`)
+4. Add at end:
+```bash
+rd.break
+```
+5. Press **Ctrl + X** to boot.
+6. Remount `/sysroot` as writable:
+```bash
+mount -o remount,rw /sysroot
+```
+7. Switch to chroot:
+```bash
+chroot /sysroot
+```
+8. Set new root password:
+```bash
+passwd root
+```
+9. Re-label SELinux (important!):
+```bash
+touch /.autorelabel
+```
+10. Exit and reboot:
+```bash
+exit
+exit
+```
+
+> System reboots and you’re back!
+
+### Pro Tips for RHCSA
+
+- RHCSA exams *love* testing:
+  - Rescue mode
+  - Boot targets
+  - Forgot password recovery
+  - View boot logs
+- Make sure you **practice `rd.break`**!
+- `/etc/default/grub` changes need **regeneration** with `grub2-mkconfig`.
+- Always check SELinux relabeling with `touch /.autorelabel` when fixing root password.
