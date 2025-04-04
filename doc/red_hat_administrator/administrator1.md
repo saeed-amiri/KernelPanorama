@@ -1410,3 +1410,160 @@ sudo cp /etc/fstab /etc/fstab.bak
 - Use `mount -a` to test **before** reboot.
 - If you mess up `fstab`, use **rescue mode** to fix it.
 
+## 12. SELinux & Firewalld
+
+
+### Part 1: SELinux — Security-Enhanced Linux
+
+#### What is SELinux?
+
+SELinux controls **access to files, processes, and ports** at a deeper level than normal file permissions.
+
+Even if file permissions are open, **SELinux policy can block access.**
+
+It uses:
+- **Labels** (contexts) on files and processes
+- **Policies** to control access
+
+#### Check SELinux Status:
+```bash
+sestatus
+```
+
+Output:
+```bash
+SELinux status:                 enabled
+SELinuxfs mount:                /sys/fs/selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             targeted
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy MLS status:              enabled
+Policy deny_unknown status:     allowed
+Memory protection checking:     actual (secure)
+Max kernel policy version:      33
+```
+
+#### Modes of SELinux:
+
+| Mode           | What it does                                      |
+|----------------|---------------------------------------------------|
+| **Enforcing**  | SELinux enforces policies (blocks access)         |
+| **Permissive** | SELinux logs violations but allows access         |
+| **Disabled**   | SELinux is turned off (needs reboot to re-enable) |
+
+#### Change mode temporarily:
+```bash
+sudo setenforce 0   # permissive
+sudo setenforce 1   # enforcing
+```
+
+**Note**: This does not survive reboot.
+
+#### Change mode permanently:
+Edit config:
+```bash
+sudo nano /etc/selinux/config
+```
+Set:
+```bash
+SELINUX=enforcing
+```
+
+
+#### Check File Context:
+```bash
+ls -Z /var/www/html/
+```
+
+#### Restore default contexts:
+If SELinux is blocking access because of wrong context:
+```bash
+sudo restorecon -Rv /var/www/html/
+```
+
+#### Manage SELinux Ports:
+List ports:
+```bash
+semanage port -l | grep http
+```
+
+Allow Apache on port 8080:
+```bash
+sudo semanage port -a -t http_port_t -p tcp 8080
+```
+
+>  `semanage` is part of **policycoreutils-python-utils**, install it if needed:
+```bash
+sudo dnf install policycoreutils-python-utils
+```
+
+#### Pro Note:
+**Audit logs** for SELinux denials:
+```bash
+sudo cat /var/log/audit/audit.log | grep AVC
+```
+
+### Part 2: Firewalld — Firewall Management
+
+#### What is firewalld?
+
+Firewalld uses **zones** to manage access to services and ports dynamically.
+
+#### Check firewalld status:
+```bash
+sudo systemctl status firewalld
+```
+
+#### List current zone:
+```bash
+sudo firewall-cmd --get-default-zone
+```
+
+#### List all zones:
+```bash
+sudo firewall-cmd --list-all-zones
+```
+
+#### List open ports/services:
+```bash
+sudo firewall-cmd --list-all
+```
+
+#### Add service (temporary):
+```bash
+sudo firewall-cmd --add-service=http
+```
+
+#### Add service (permanent):
+```bash
+sudo firewall-cmd --add-service=http --permanent
+sudo firewall-cmd --reload
+```
+
+#### Add custom port:
+```bash
+sudo firewall-cmd --add-port=8080/tcp --permanent
+sudo firewall-cmd --reload
+```
+
+#### Remove service:
+```bash
+sudo firewall-cmd --remove-service=http --permanent
+sudo firewall-cmd --reload
+```
+
+### Pro Notes
+
+> *Allow web server to run on custom port with SELinux and firewalld configured.*
+
+- Test your work:
+```bash
+sudo curl -I http://localhost:8080
+```
+
+- Permanent changes need **`--permanent`** and **reload**:
+```bash
+sudo firewall-cmd --reload
+```
+
