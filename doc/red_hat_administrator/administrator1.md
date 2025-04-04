@@ -907,13 +907,6 @@ output:
 [REDACTED]: systemd[1]: Started OpenSSH server daemon.
 [REDACTED]: sshd[PID]: Server listening on [REDACTED].
 ```
-Let's break down the output of your command:
-
-```bash
-systemctl status sshd
-```
-
-### Explanation of Output:
 
 - **Service Name:** `sshd.service`  
   The SSH Daemon (sshd) allows secure remote login and file transfers.
@@ -1072,3 +1065,224 @@ journalctl -p crit
 ```bash
 journalctl -b -1
 ```
+
+## 9. Networking with `nmcli`, `ip`, and Network Troubleshooting
+
+#### Goal: Configure and manage network interfaces, verify connectivity, and troubleshoot.
+
+
+#### 1. Network Manager Overview
+
+- **NetworkManager** is the service managing interfaces in RHEL.
+- We control it with:
+  - `nmcli` (command line tool)
+  - `nmtui` (text user interface)
+  - config files: `/etc/NetworkManager/system-connections/`
+
+Check if NetworkManager is running:
+```bash
+systemctl status NetworkManager
+```
+
+
+#### 2. Configure Network Interfaces with `nmcli`
+
+##### Show all connections:
+```bash
+nmcli connection show
+```
+
+##### Show active devices:
+```bash
+nmcli device status
+```
+
+##### Show connection details:
+```bash
+nmcli connection show <connection-name>
+```
+
+##### Add a new connection (static IP):
+```bash
+sudo nmcli con add con-name my-ethernet ifname eth0 type ethernet ip4 1XX.1XX.1.1XX/24 gw4 1XX.1XX.1XX.1
+```
+
+##### Set DNS:
+```bash
+sudo nmcli con mod my-ethernet ipv4.dns "8.8.8.8 8.8.4.4"
+```
+
+##### Bring connection up/down:
+```bash
+sudo nmcli con up my-ethernet
+sudo nmcli con down my-ethernet
+```
+
+#### 3. `nmtui` — Easy Visual TUI
+
+If you like menus, try:
+```bash
+sudo nmtui
+```
+
+From here you can:
+- Edit connections
+- Set IP addresses
+- Set DNS
+- Activate/deactivate interfaces
+
+
+#### 4. Verify & Troubleshoot with `ip` and friends
+
+##### Show interfaces:
+```bash
+ip a
+```
+
+##### Show routing table:
+```bash
+ip route
+```
+
+##### Test connectivity:
+```bash
+ping -c 4 8.8.8.8
+```
+
+##### Test name resolution:
+```bash
+ping www.redhat.com
+```
+
+If IP works but name fails, it's **DNS problem**.
+
+
+#### 5. Troubleshoot:
+
+| Problem               | Command to Diagnose                          |
+|-----------------------|----------------------------------------------|
+| No IP Address         | `ip a`                                       |
+| Interface down        | `nmcli device status`                        |
+| Wrong gateway         | `ip route`                                   |
+| DNS fails             | Check `/etc/resolv.conf` or `nmcli con show` |
+| Service not listening | `ss -tuln` or `netstat -tuln`                |
+| Firewall blocking     | `firewall-cmd --list-all`                    |
+
+
+
+#### Pro Notes
+
+- Network configs are persistent **if you use `nmcli con mod` or `nmtui`**.
+- Manual `ip a` settings are *temporary* (until reboot).
+- DNS config is saved by NetworkManager, but old tools (like editing `/etc/resolv.conf`) are overwritten.
+
+
+## 10. Managing Time and Date
+
+####  Goal: Configure system time, timezone, NTP time sync, and check accuracy.
+
+
+### 1. Check Current Time and Settings
+
+```bash
+timedatectl status
+```
+output:
+```bash
+               Local time: Fri 2025-04-04 17:32:40 CEST
+           Universal time: Fri 2025-04-04 15:32:40 UTC
+                 RTC time: Fri 2025-04-04 15:32:40
+                Time zone: Europe/Berlin (CEST, +0200)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+```
+
+You’ll see:
+- Local time
+- Universal time (UTC)
+- RTC time (hardware clock)
+- Time zone
+- NTP status
+
+
+### 2. Set Time Zone
+
+List available time zones:
+```bash
+timedatectl list-timezones
+```
+
+Set time zone:
+```bash
+sudo timedatectl set-timezone Europe/Berlin
+```
+
+Check:
+```bash
+timedatectl status
+```
+
+> Set UTC for servers, local time for desktops. UTC prevents time drift in global systems.
+
+
+### 3. Manually Set the Time (Rare, but good to know)
+
+```bash
+sudo timedatectl set-time "2025-03-31 22:00:00"
+```
+
+> Manual time setting disables automatic NTP sync!
+
+
+### 4. Enable/Disable NTP Synchronization
+
+Check if NTP is active:
+```bash
+timedatectl status
+```
+
+Enable NTP:
+```bash
+sudo timedatectl set-ntp true
+```
+
+Disable NTP:
+```bash
+sudo timedatectl set-ntp false
+```
+
+### 5. Check NTP Sync Source
+
+See which NTP servers you’re syncing with:
+```bash
+chronyc sources
+```
+
+If `chronyc` is missing:
+```bash
+sudo dnf install chrony
+sudo systemctl enable --now chronyd
+```
+
+### 6. Persistent Time Configs
+
+- Time zone config: `/etc/localtime` (symlink to zoneinfo)
+- NTP config: `/etc/chrony.conf`
+
+View `chrony.conf`:
+```bash
+cat /etc/chrony.conf
+```
+
+
+### Summary
+
+| Task              | Command                               |
+|-------------------|---------------------------------------|
+| Show current time | `timedatectl status`                  |
+| List time zones   | `timedatectl list-timezones`          |
+| Set time zone     | `sudo timedatectl set-timezone <zone>`|
+| Enable NTP        | `sudo timedatectl set-ntp true`       |
+| Check NTP sources | `chronyc sources`                     |
+
