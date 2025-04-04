@@ -868,7 +868,6 @@ Useful for:
 | `rpm --verify`                | Check integrity of installed files           |
 | `rpmdev-extract`              | Unpack `.src.rpm` and `.rpm` for inspection  |
 
-
 ## 8. Managing System Services & Logs
 
 #### Goal: Control services and analyze system logs with **systemctl** and **journalctl**.
@@ -1683,3 +1682,4 @@ exit
 - Make sure you **practice `rd.break`**!
 - `/etc/default/grub` changes need **regeneration** with `grub2-mkconfig`.
 - Always check SELinux relabeling with `touch /.autorelabel` when fixing root password.
+
