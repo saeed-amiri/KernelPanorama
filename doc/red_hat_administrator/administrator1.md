@@ -615,7 +615,7 @@ tar -xjvf archive.tar.bz2  # bzip2
 tar -xJvf archive.tar.xz   # xz
 ```
 
-## `dnf`
+## 7. `dnf`
 
 #### **DNF = Dandified YUM**
 
@@ -869,7 +869,7 @@ Useful for:
 | `rpmdev-extract`              | Unpack `.src.rpm` and `.rpm` for inspection  |
 
 
-## Managing System Services & Logs
+## 8. Managing System Services & Logs
 
 #### Goal: Control services and analyze system logs with **systemctl** and **journalctl**.
 
