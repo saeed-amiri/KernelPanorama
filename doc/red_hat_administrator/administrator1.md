@@ -1647,7 +1647,16 @@ Steps:
 ```bash
 rd.break
 ```
-5. Press **Ctrl + X** to boot.
+In RHEL 9
+```bash
+rd.break enforcing=0
+```
+
+5. Press **Ctrl + X** to boot.  
+>It will drop into:
+```bash
+switch_root:/#
+```
 6. Remount `/sysroot` as writable:
 ```bash
 mount -o remount,rw /sysroot
