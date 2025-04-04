@@ -1286,3 +1286,127 @@ cat /etc/chrony.conf
 | Enable NTP        | `sudo timedatectl set-ntp true`       |
 | Check NTP sources | `chronyc sources`                     |
 
+
+## 11. Storage Management (Partitions, Filesystems, Mounting)
+
+#### Understand devices, partitions, filesystems, and how to mount them (temporarily and permanently).
+
+
+### 1. Understand Devices & Partitions
+
+#### List all storage devices:
+```bash
+lsblk
+```
+
+Example output:
+```bash
+NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+sda      8:0    0  20G  0 disk 
+├─sda1   8:1    0   1G  0 part /boot
+└─sda2   8:2    0  19G  0 part /
+```
+
+- `sda` → whole disk
+- `sda1`, `sda2` → partitions
+- `TYPE` can be `disk`, `part`, `lvm`, etc.
+
+
+#### Detailed info:
+```bash
+sudo fdisk -l
+```
+
+#### Use `blkid` for UUID and filesystem info:
+```bash
+sudo blkid
+```
+
+### 2. Partitioning Disks (with `fdisk`)
+
+> Warning: **Do this only on empty or test disks in your VM.**
+
+```bash
+sudo fdisk /dev/sdb
+```
+
+Inside fdisk:
+- `n` → new partition
+- `p` → primary
+- `w` → write changes
+- `q` → quit without saving
+
+
+### 3. Create Filesystem
+
+After creating the partition (example: `/dev/sdb1`):
+
+#### Make ext4 filesystem:
+```bash
+sudo mkfs.ext4 /dev/sdb1
+```
+
+Other types:
+```bash
+sudo mkfs.xfs /dev/sdb1    # Default RHEL fs
+sudo mkfs.vfat /dev/sdb1   # FAT32 (USB drives)
+```
+
+#### Check filesystem:
+```bash
+sudo file -s /dev/sdb1
+```
+
+
+### 4. Mount Storage
+
+#### Create a mount point:
+```bash
+sudo mkdir /mnt/data
+```
+
+#### Mount the partition:
+```bash
+sudo mount /dev/sdb1 /mnt/data
+```
+
+#### Check mounted filesystems:
+```bash
+mount | grep /mnt/data
+df -h
+```
+
+### 5. Make Mount Persistent (Edit `/etc/fstab`)
+
+Get the UUID:
+```bash
+sudo blkid /dev/sdb1
+```
+
+Edit `/etc/fstab`:
+```bash
+sudo nano /etc/fstab
+```
+
+Add line:
+```
+UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /mnt/data ext4 defaults 0 0
+```
+
+> Test:
+```bash
+sudo mount -a
+```
+
+If no errors, it’s good.
+
+## Pro Notes
+
+- Red Hat prefers **XFS** filesystem in RHEL 8+ (supports journaling, good performance).
+- Always back up `/etc/fstab` before editing:
+```bash
+sudo cp /etc/fstab /etc/fstab.bak
+```
+- Use `mount -a` to test **before** reboot.
+- If you mess up `fstab`, use **rescue mode** to fix it.
+
