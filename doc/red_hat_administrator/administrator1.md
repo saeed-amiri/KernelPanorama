@@ -889,6 +889,66 @@ systemctl is the main tool to interact with systemd.
 ```bash
 systemctl status sshd
 ```
+output:
+```bash
+● sshd.service - OpenSSH server daemon
+     Loaded: loaded (/usr/lib/systemd/system/sshd.service; enabled; preset: enabled)
+     Active: active (running) since [REDACTED]; 52min ago
+       Docs: man:sshd(8)
+             man:sshd_config(5)
+   Main PID: [REDACTED] (sshd)
+      Tasks: 1 (limit: 25744)
+     Memory: 2.9M
+        CPU: 10ms
+     CGroup: /system.slice/sshd.service
+             └─[REDACTED] "sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups"
+
+[REDACTED]: systemd[1]: Starting OpenSSH server daemon...
+[REDACTED]: systemd[1]: Started OpenSSH server daemon.
+[REDACTED]: sshd[PID]: Server listening on [REDACTED].
+```
+Let's break down the output of your command:
+
+```bash
+systemctl status sshd
+```
+
+### Explanation of Output:
+
+- **Service Name:** `sshd.service`  
+  The SSH Daemon (sshd) allows secure remote login and file transfers.
+
+- **Loaded:**  
+  The SSH service is installed, enabled to start automatically, and configured as per system presets.
+
+- **Active:** `active (running)`  
+  Currently running normally. The SSH daemon started successfully and has been up for 52 minutes.
+
+- **Main PID:** `941 (sshd)`  
+  Process ID (PID) of the main SSH daemon process.
+
+- **Tasks:** `1 (limit: 25744)`  
+  SSHD is running with one active task (normal for minimal load).
+
+- **Memory:** `2.9M`  
+  Currently using ~3 MB of RAM—standard and lightweight.
+
+- **CPU:** `10ms`  
+  Minimal CPU usage (just 10 milliseconds since starting).
+
+- **CGroup (Control Group):**  
+  Shows the active SSH process, listening for connections.
+
+- **Logs:**
+  ```plaintext
+  Server listening on 0.0.0.0 port XX.
+  Server listening on :: port XX.
+  ```
+  Indicates SSH daemon is listening on:
+  - IPv4 (`0.0.0.0`)
+  - IPv6 (`::`)
+  at default port **XX**.
+
 
 #### Start a service **now**:
 ```bash
