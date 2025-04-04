@@ -867,3 +867,148 @@ Useful for:
 | `dnf config-manager`          | Enable/disable/add repos                     |
 | `rpm --verify`                | Check integrity of installed files           |
 | `rpmdev-extract`              | Unpack `.src.rpm` and `.rpm` for inspection  |
+
+
+## Managing System Services & Logs
+
+#### Goal: Control services and analyze system logs with **systemctl** and **journalctl**.
+
+
+### 1. **What is systemd?**
+
+- It’s the **init system** used by RHEL (and most modern distros).
+- systemd **manages system services**, startup processes, and dependencies.
+- It replaces old-school init scripts (`/etc/init.d/`).
+
+systemctl is the main tool to interact with systemd.
+
+
+### 2. **Control Services with `systemctl`**
+
+#### Check if a service is active:
+```bash
+systemctl status sshd
+```
+
+#### Start a service **now**:
+```bash
+sudo systemctl start sshd
+```
+
+#### Stop a service:
+```bash
+sudo systemctl stop sshd
+```
+
+#### Enable service at boot:
+```bash
+sudo systemctl enable sshd
+```
+
+#### Disable service at boot:
+```bash
+sudo systemctl disable sshd
+```
+
+#### Restart a service:
+```bash
+sudo systemctl restart sshd
+```
+
+#### Reload config (without restarting):
+```bash
+sudo systemctl reload sshd
+```
+
+#### Check if enabled at boot:
+```bash
+systemctl is-enabled sshd
+```
+
+> **EX200 test tip:**  
+They *love* to ask:  
+> "Make sure `sshd` is running and starts on boot."
+
+
+### 3. **Service Status Summary**
+
+Show running services:
+```bash
+systemctl list-units --type=service --state=running
+```
+
+List all services:
+```bash
+systemctl list-unit-files --type=service
+```
+
+
+### 4. **System Targets (Runlevels in systemd)**
+
+| Old Runlevel | systemd Target   |
+|--------------|------------------|
+| 0            | poweroff.target  |
+| 1 (single)   | rescue.target    |
+| 3            | multi-user.target|
+| 5 (GUI)      | graphical.target |
+| 6            | reboot.target    |
+
+Check current target:
+```bash
+systemctl get-default
+```
+
+Set boot target:
+```bash
+sudo systemctl set-default multi-user.target
+```
+
+Switch target immediately:
+```bash
+sudo systemctl isolate rescue.target
+```
+
+> Warning: isolate will switch immediately — test carefully!
+
+
+### 5. **Viewing Logs with `journalctl`**
+
+#### Show all logs:
+```bash
+journalctl
+```
+
+#### Show logs for a service:
+```bash
+journalctl -u sshd
+```
+
+#### Follow live logs (like `tail -f`):
+```bash
+journalctl -f
+```
+
+#### Filter by time:
+```bash
+journalctl --since today
+journalctl --since "2025-03-30 10:00" --until "2025-03-30 12:00"
+```
+
+#### Show boot logs:
+```bash
+journalctl -b
+```
+
+### Advanced Pro Stuff
+
+- Persistent logs stored in `/var/log/journal/`
+- Filter logs by priority:
+```bash
+journalctl -p err
+journalctl -p warning
+journalctl -p crit
+```
+- View logs for previous boots:
+```bash
+journalctl -b -1
+```
